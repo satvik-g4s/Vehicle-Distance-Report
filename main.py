@@ -67,12 +67,10 @@ if download_only:
                            sheet_name=month,
                            index=False)
 
-    st.download_button(
-        label="Download Master Report",
-        data=output.getvalue(),
-        file_name="GPS_Master_Output.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    label="Download Master Report",
+    data=output.getvalue(),
+    file_name="GPS_Master_Output.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
     st.stop()
 
