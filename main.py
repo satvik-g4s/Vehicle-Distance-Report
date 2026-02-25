@@ -22,30 +22,25 @@ st.caption("Required columns: plate_number + date columns in dd-mm-yyyy format")
 run = st.button("Run")
 
 if run:
-    if uploaded_file_mmi is None or uploaded_file_cautio is None:
-        st.warning("Please upload both files")
-    else:
-        st.write("Reading files...")
+
+    if uploaded_file_mmi is None and uploaded_file_cautio is None:
+        st.warning("Please upload at least one file")
+        st.stop()
+
+    processed_frames = []
+
+    # ======================
+    # MAPMYINDIA PROCESSING
+    # ======================
+    if uploaded_file_mmi is not None:
+
+        st.write("Processing MapMyIndia file...")
 
         mmi = pd.read_excel(
             uploaded_file_mmi,
             header=5,
             usecols=["Device", "Date", "Distance (km)"]
         )
-
-        cautio = pd.read_csv(uploaded_file_cautio, index_col=False)
-
-        st.write("Processing Cautio data...")
-
-        date_cols = pd.to_datetime(
-            cautio.columns,
-            format="%d-%m-%Y",
-            errors="coerce"
-        ).notna()
-
-        cautio = cautio.loc[:, ["plate_number"] + list(cautio.columns[date_cols])]
-
-        st.write("Processing MapMyIndia data...")
 
         mmi = (
             mmi.pivot_table(
@@ -59,81 +54,43 @@ if run:
 
         mmi = mmi.rename(columns={"Device": "plate_number"})
 
-        st.write("Combining data...")
+        processed_frames.append(mmi)
 
-        combine = pd.concat([cautio, mmi], axis=0)
+    # ======================
+    # CAUTIO PROCESSING
+    # ======================
+    if uploaded_file_cautio is not None:
 
-        upload_df = combine.melt(
-            id_vars="plate_number",
-            var_name="trip_date",
-            value_name="distance"
-        )
+        st.write("Processing Cautio file...")
 
-        upload_df["trip_date"] = pd.to_datetime(
-            upload_df["trip_date"],
-            dayfirst=True
-        ).dt.strftime("%Y-%m-%d")
+        cautio = pd.read_csv(uploaded_file_cautio, index_col=False)
 
-        upload_df = upload_df.dropna(subset=["distance"])
+        date_cols = pd.to_datetime(
+            cautio.columns,
+            format="%d-%m-%Y",
+            errors="coerce"
+        ).notna()
 
-        st.write("Uploading to Database...")
+        cautio = cautio.loc[
+            :, ["plate_number"] + list(cautio.columns[date_cols])
+        ]
 
-        SUPABASE_URL = st.secrets["SUPABASE_URL"]
-        SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
+        processed_frames.append(cautio)
 
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    # ======================
+    # COMBINE AVAILABLE DATA
+    # ======================
+    combine = pd.concat(processed_frames, axis=0)
 
-        data = upload_df.to_dict("records")
+    upload_df = combine.melt(
+        id_vars="plate_number",
+        var_name="trip_date",
+        value_name="distance"
+    )
 
-        supabase.table("gps_distance") \
-            .upsert(data, ignore_duplicates=True) \
-            .execute()
+    upload_df["trip_date"] = pd.to_datetime(
+        upload_df["trip_date"],
+        dayfirst=True
+    ).dt.strftime("%Y-%m-%d")
 
-        st.write("Fetching master data...")
-
-        response = supabase.table("gps_distance") \
-            .select("*") \
-            .execute()
-
-        master = pd.DataFrame(response.data)
-
-        master["trip_date"] = pd.to_datetime(master["trip_date"])
-        master["Month"] = master["trip_date"].dt.strftime("%b-%Y")
-
-        st.write("Creating Excel output...")
-
-        output = io.BytesIO()
-
-        with pd.ExcelWriter(output, engine="openpyxl") as writer:
-            for month, df_month in master.groupby("Month"):
-
-                pivot = df_month.pivot_table(
-                    index="plate_number",
-                    columns="trip_date",
-                    values="distance",
-                    aggfunc="sum"
-                )
-
-                pivot = pivot.sort_index(axis=1)
-
-                pivot.reset_index(inplace=True)
-                pivot.columns.name = None
-                pivot.columns = [
-                    col.strftime("%d-%m-%Y") if isinstance(col, pd.Timestamp) else col
-                    for col in pivot.columns
-                ]
-
-                pivot.to_excel(
-                    writer,
-                    sheet_name=month,
-                    index=False
-                )
-
-        st.success("Process Completed")
-
-        st.download_button(
-            label="Download Output",
-            data=output.getvalue(),
-            file_name="output.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+    upload_df = upload_df.dropna(subset=["distance"])
