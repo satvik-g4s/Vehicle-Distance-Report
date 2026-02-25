@@ -6,7 +6,7 @@ import io
 st.set_page_config(layout="wide")
 
 st.title("GPS Distance Processing")
-download_only = st.button("📥 Download Existing Master Report")
+download_only = st.button(" Fetch Existing Master Report")
 if download_only:
 
     SUPABASE_URL = st.secrets["SUPABASE_URL"]
@@ -67,10 +67,12 @@ if download_only:
                            sheet_name=month,
                            index=False)
 
-    label="Download Master Report",
-    data=output.getvalue(),
-    file_name="GPS_Master_Output.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    st.download_button(
+        label="Download Master Report",
+        data=output.getvalue(),
+        file_name="GPS_Master_Output.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
     st.stop()
 
