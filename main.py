@@ -12,7 +12,6 @@ uploaded_file_vehicles = st.file_uploader(
     type=["xlsx"]
 )
 st.caption("Required columns: ['S.No', 'Lease/Rental', 'Type', 'Hub Name', 'Location', 'Client/QRT', 'Reg. Vehicle Number', 'Vehicle Contract Status', 'Make', 'Vendor Name', 'Lease Start', 'Contrat End/Extension', 'Expiring Year', 'Lease Tenure', 'Lease Mileage', 'Billing Company', 'Monthly EMI', 'ADAS', 'GPS']")
-run = st.button("Run")
 
 if uploaded_file_vehicles is not None:
 
@@ -103,6 +102,9 @@ uploaded_file_cautio = st.file_uploader(
     type=["csv"]
 )
 st.caption("Required columns: plate_number + date columns in dd-mm-yyyy format")
+if uploaded_file_mmi is None or uploaded_file_cautio is None:
+    run = st.button("Run")
+
 
 # =============================
 # MAIN PROCESS
