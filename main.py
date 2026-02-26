@@ -77,10 +77,13 @@ if uploaded_file_vehicles is not None:
 
         with pd.ExcelWriter(output, engine="openpyxl") as writer:
 
-            for month, df_month in (
-                master.sort_values("MonthOrder")
-                      .groupby("Month")
-            ):
+            month_groups = (
+                master
+                .sort_values("MonthOrder")
+                .groupby(["MonthOrder", "Month"])
+            )
+            
+            for (_, month), df_month in month_groups:
 
                 pivot = df_month.pivot_table(
                     index="plate_number",
