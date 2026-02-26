@@ -285,7 +285,7 @@ if run:
                 else col
                 for col in pivot.columns    
             ]
-            pivot=pivot.merge(vehicles,pivot, how="left", on="plate_number")
+            pivot=pd.merge(vehicles,pivot, how="left", on="plate_number")
 
             pivot.to_excel(
                 writer,
