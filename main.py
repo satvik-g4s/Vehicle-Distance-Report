@@ -102,7 +102,7 @@ uploaded_file_cautio = st.file_uploader(
     type=["csv"]
 )
 st.caption("Required columns: plate_number + date columns in dd-mm-yyyy format")
-if uploaded_file_mmi is None or uploaded_file_cautio is None:
+if uploaded_file_mmi is not None or uploaded_file_cautio is not None:
     run = st.button("Run")
 
 
