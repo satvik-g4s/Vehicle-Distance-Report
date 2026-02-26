@@ -90,7 +90,11 @@ uploaded_file_cautio = st.file_uploader(
     type=["csv"]
 )
 st.caption("Required columns: plate_number + date columns in dd-mm-yyyy format")
-
+uploaded_file_vehicles = st.file_uploader(
+    "Upload Vehicles Data (xlsx)",
+    type=["xlsx"]
+)
+st.caption("Required columns: ['S.No', 'Lease/Rental', 'Type', 'Hub Name', 'Location', 'Client/QRT', 'Reg. Vehicle Number', 'Vehicle Contract Status', 'Make', 'Vendor Name', 'Lease Start', 'Contrat End/Extension', 'Expiring Year', 'Lease Tenure', 'Lease Mileage', 'Billing Company', 'Monthly EMI', 'ADAS', 'GPS']")
 run = st.button("Run")
 
 # =============================
@@ -165,6 +169,19 @@ if run:
     else:
         st.info("Cautio file not uploaded")
         cautio = pd.DataFrame(columns=["plate_number"])
+
+    if uploaded_file_vehicles is not None:
+
+        st.write("Processing Vehicles data...")
+
+        vehicles = pd.read_excel(uploaded_file_vehicles, usecols="A:S")
+        vehicles=vehicles.rename(columns={"Reg. Vehicle Number":"plate_number"})
+
+        
+
+    else:
+        st.info("Vehicles data not uploaded")
+        st.stop()
 
     # =============================
     # COMBINE DATA
@@ -266,8 +283,9 @@ if run:
                 col.strftime("%d-%m-%Y")
                 if isinstance(col, pd.Timestamp)
                 else col
-                for col in pivot.columns
+                for col in pivot.columns    
             ]
+            pivot=pivot.merge(vehicles,pivot, how="left", on="plate_number")
 
             pivot.to_excel(
                 writer,
