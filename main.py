@@ -14,6 +14,9 @@ uploaded_file_vehicles = st.file_uploader(
 st.caption("Required columns: ['S.No', 'Lease/Rental', 'Type', 'Hub Name', 'Location', 'Client/QRT', 'Reg. Vehicle Number', 'Vehicle Contract Status', 'Make', 'Vendor Name', 'Lease Start', 'Contrat End/Extension', 'Expiring Year', 'Lease Tenure', 'Lease Mileage', 'Billing Company', 'Monthly EMI', 'ADAS', 'GPS']")
 
 if uploaded_file_vehicles is not None:
+    st.write("Processing Vehicles data...")
+    vehicles = pd.read_excel(uploaded_file_vehicles, usecols="A:S")
+    vehicles=vehicles.rename(columns={"Reg. Vehicle Number":"plate_number"})
 
 
     download_only = st.button(" Fetch Existing Master Report")
@@ -179,17 +182,8 @@ if uploaded_file_mmi is not None or uploaded_file_cautio is not None:
             st.info("Cautio file not uploaded")
             cautio = pd.DataFrame(columns=["plate_number"])
     
-        if uploaded_file_vehicles is not None:
-    
-            st.write("Processing Vehicles data...")
-    
-            vehicles = pd.read_excel(uploaded_file_vehicles, usecols="A:S")
-            vehicles=vehicles.rename(columns={"Reg. Vehicle Number":"plate_number"})
-    
-            
-    
-        else:
-            st.info("Vehicles data not uploaded")
+  
+
     
         # =============================
         # COMBINE DATA
