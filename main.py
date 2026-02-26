@@ -6,75 +6,88 @@ import io
 st.set_page_config(layout="wide")
 
 st.title("GPS Distance Processing")
-download_only = st.button(" Fetch Existing Master Report")
-if download_only:
 
-    SUPABASE_URL = st.secrets["SUPABASE_URL"]
-    SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
+uploaded_file_vehicles = st.file_uploader(
+    "Upload Vehicles Data (xlsx)",
+    type=["xlsx"]
+)
+st.caption("Required columns: ['S.No', 'Lease/Rental', 'Type', 'Hub Name', 'Location', 'Client/QRT', 'Reg. Vehicle Number', 'Vehicle Contract Status', 'Make', 'Vendor Name', 'Lease Start', 'Contrat End/Extension', 'Expiring Year', 'Lease Tenure', 'Lease Mileage', 'Billing Company', 'Monthly EMI', 'ADAS', 'GPS']")
+run = st.button("Run")
 
-    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+if uploaded_file_vehicles is not None:
 
-    st.write("Fetching master data...")
 
-    response = supabase.table("gps_distance") \
-        .select("*") \
-        .execute()
+    download_only = st.button(" Fetch Existing Master Report")
+    if download_only:
 
-    master = pd.DataFrame(response.data)
+        SUPABASE_URL = st.secrets["SUPABASE_URL"]
+        SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
-    if master.empty:
-        st.warning("Database is empty")
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+        st.write("Fetching master data...")
+
+        response = supabase.table("gps_distance") \
+            .select("*") \
+            .execute()
+
+        master = pd.DataFrame(response.data)
+
+        if master.empty:
+            st.warning("Database is empty")
+            st.stop()
+
+        master["trip_date"] = pd.to_datetime(master["trip_date"])
+
+        master = master.drop_duplicates(
+            subset=["plate_number", "trip_date"]
+        )
+
+        master["Month"] = master["trip_date"].dt.strftime("%b-%Y")
+        master["MonthOrder"] = master["trip_date"].dt.to_period("M")
+
+        output = io.BytesIO()
+
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+
+            for month, df_month in (
+                master.sort_values("MonthOrder")
+                      .groupby("Month")
+            ):
+
+                pivot = df_month.pivot_table(
+                    index="plate_number",
+                    columns="trip_date",
+                    values="distance",
+                    aggfunc="sum"
+                )
+
+                pivot = pivot.sort_index(axis=1)
+
+                pivot.reset_index(inplace=True)
+                pivot.columns.name = None
+
+                pivot.columns = [
+                    c.strftime("%d-%m-%Y")
+                    if isinstance(c, pd.Timestamp)
+                    else c
+                    for c in pivot.columns
+                ]
+
+                pivot=pd.merge(vehicles,pivot, how="left", on="plate_number")
+
+                pivot.to_excel(writer,
+                               sheet_name=month,
+                               index=False)
+
+        st.download_button(
+            label="Download Master Report",
+            data=output.getvalue(),
+            file_name="GPS_Master_Output.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
         st.stop()
-
-    master["trip_date"] = pd.to_datetime(master["trip_date"])
-
-    master = master.drop_duplicates(
-        subset=["plate_number", "trip_date"]
-    )
-
-    master["Month"] = master["trip_date"].dt.strftime("%b-%Y")
-    master["MonthOrder"] = master["trip_date"].dt.to_period("M")
-
-    output = io.BytesIO()
-
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-
-        for month, df_month in (
-            master.sort_values("MonthOrder")
-                  .groupby("Month")
-        ):
-
-            pivot = df_month.pivot_table(
-                index="plate_number",
-                columns="trip_date",
-                values="distance",
-                aggfunc="sum"
-            )
-
-            pivot = pivot.sort_index(axis=1)
-
-            pivot.reset_index(inplace=True)
-            pivot.columns.name = None
-
-            pivot.columns = [
-                c.strftime("%d-%m-%Y")
-                if isinstance(c, pd.Timestamp)
-                else c
-                for c in pivot.columns
-            ]
-
-            pivot.to_excel(writer,
-                           sheet_name=month,
-                           index=False)
-
-    st.download_button(
-        label="Download Master Report",
-        data=output.getvalue(),
-        file_name="GPS_Master_Output.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
-    st.stop()
 
 # =============================
 # FILE UPLOADS
@@ -90,12 +103,6 @@ uploaded_file_cautio = st.file_uploader(
     type=["csv"]
 )
 st.caption("Required columns: plate_number + date columns in dd-mm-yyyy format")
-uploaded_file_vehicles = st.file_uploader(
-    "Upload Vehicles Data (xlsx)",
-    type=["xlsx"]
-)
-st.caption("Required columns: ['S.No', 'Lease/Rental', 'Type', 'Hub Name', 'Location', 'Client/QRT', 'Reg. Vehicle Number', 'Vehicle Contract Status', 'Make', 'Vendor Name', 'Lease Start', 'Contrat End/Extension', 'Expiring Year', 'Lease Tenure', 'Lease Mileage', 'Billing Company', 'Monthly EMI', 'ADAS', 'GPS']")
-run = st.button("Run")
 
 # =============================
 # MAIN PROCESS
@@ -181,7 +188,6 @@ if run:
 
     else:
         st.info("Vehicles data not uploaded")
-        st.stop()
 
     # =============================
     # COMBINE DATA
@@ -285,7 +291,8 @@ if run:
                 else col
                 for col in pivot.columns    
             ]
-            pivot=pd.merge(vehicles,pivot, how="left", on="plate_number")
+            if uploaded_file_vehicles is not None:
+                pivot=pd.merge(vehicles,pivot, how="left", on="plate_number")
 
             pivot.to_excel(
                 writer,
