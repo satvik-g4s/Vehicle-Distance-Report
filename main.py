@@ -34,7 +34,7 @@ def fetch_all_gps():
 
 st.set_page_config(layout="wide")
 
-st.title("GPS Distance Processing")
+st.title("Vehicle-Distance-Report")
 
 uploaded_file_vehicles = st.file_uploader(
     "Upload Vehicles Data (xlsx)",
