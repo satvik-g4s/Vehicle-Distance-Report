@@ -40,7 +40,7 @@ uploaded_file_vehicles = st.file_uploader(
     "Upload Vehicles Data (xlsx)",
     type=["xlsx"]
 )
-st.caption("Required columns: ['S.No', 'Lease/Rental', 'Type', 'Hub Name', 'Location', 'Client/QRT', 'Reg. Vehicle Number', 'Vehicle Contract Status', 'Make', 'Vendor Name', 'Lease Start', 'Contrat End/Extension', 'Expiring Year', 'Lease Tenure', 'Lease Mileage', 'Billing Company', 'Monthly EMI', 'ADAS', 'GPS']")
+st.caption("Required columns: S.No, Lease/Rental, Type, Hub Name, Location, Client/QRT, Reg. Vehicle Number, Vehicle Contract Status, Make, Vendor Name, Lease Start, Contrat End/Extension, Expiring Year, Lease Tenure, Lease Mileage, Billing Company, Monthly EMI, ADAS, GPS")
 
 if uploaded_file_vehicles is not None:
     st.write("Processing Vehicles data...")
