@@ -305,20 +305,20 @@ if uploaded_file_mmi is not None or uploaded_file_cautio is not None:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 st.markdown("""
-### 📘 GPS Distance Processing – Guidelines
+### GPS Distance Processing – Guidelines
 
 ---
 
-#### 🚗 Vehicle Master Data
+#### ▶ Vehicle Master Data
 The **Vehicle Master file** contains all vehicle-related information associated with **G4S**.
 
-- If unavailable, kindly fetch the latest file from [here](https://docs.google.com/spreadsheets/d/1OBQgxo5vuVNwnvho-lZPplBpKLX1sDSbBadmQ08cu9w/edit?usp=sharing) and upload here.
+- If unavailable, kindly fetch the latest file from [here](https://docs.google.com/spreadsheets/d/1OBQgxo5vuVNwnvho-lZPplBpKLX1sDSbBadmQ08cu9w/edit?usp=sharing) in excel format and upload here.
 - In case of any vehicle additions or modifications, the same sheet should be updated and re-uploaded(dont change the column names if possible).
 - Column names must remain exactly the same.
 
 ---
 
-#### 📥 Download Existing Report
+#### ▶ Download Existing Report
 To download the latest consolidated report:
 
 1. Upload the **Vehicles Data** file.
@@ -327,7 +327,7 @@ To download the latest consolidated report:
 
 ---
 
-#### 🔄 Updating Daily GPS Data
+#### ▶ Updating Daily GPS Data
 
 ##### ✔ Updating Cautio Data
 - Upload the received **Cautio data** in the **3rd Upload**.
@@ -335,7 +335,7 @@ To download the latest consolidated report:
 
 ##### ✔ Updating MapMyIndia Data
 - Upload the received **MapMyIndia data** in the **2nd Upload**.
-- Ensure file is downloaded from the server in **CSV format**.
+- Ensure file is in **Excel format**.
 
 ---
 
@@ -348,7 +348,7 @@ If only database update is required:
 
 ---
 
-#### ⚠ Important Instructions
+#### ▶ Important Instructions
 - Upload files **only in their respective upload fields**.
 - Incorrect uploads may cause the program to crash.
 - If this occurs, kindly **refresh the page and upload again**.
@@ -356,7 +356,7 @@ If only database update is required:
 
 ---
 
-#### 📝 Note
+#### ▶ Note
 If the **Vehicle Master file is not uploaded**,  
 the report can still be generated, however vehicle-related details will not be reflected.
 """)
