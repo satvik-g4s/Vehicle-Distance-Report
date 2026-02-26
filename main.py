@@ -3,6 +3,35 @@ import pandas as pd
 from supabase import create_client
 import io
 
+
+def fetch_all_gps():
+
+    all_rows = []
+    limit = 1000
+    start = 0
+
+    while True:
+
+        response = (
+            supabase.table("gps_distance")
+            .select("*")
+            .range(start, start + limit - 1)
+            .execute()
+        )
+
+        data = response.data
+
+        if not data:
+            break
+
+        all_rows.extend(data)
+        start += limit
+
+    return pd.DataFrame(all_rows)
+
+
+
+
 st.set_page_config(layout="wide")
 
 st.title("GPS Distance Processing")
@@ -29,11 +58,7 @@ if uploaded_file_vehicles is not None:
 
         st.write("Fetching master data...")
 
-        response = supabase.table("gps_distance") \
-            .select("*") \
-            .execute()
-
-        master = pd.DataFrame(response.data)
+        master = fetch_all_gps()
 
         if master.empty:
             st.warning("Database is empty")
@@ -239,11 +264,7 @@ if uploaded_file_mmi is not None or uploaded_file_cautio is not None:
         # =============================
         st.write("Fetching master data...")
     
-        response = supabase.table("gps_distance") \
-            .select("*") \
-            .execute()
-    
-        master = pd.DataFrame(response.data)
+        master = fetch_all_gps()
     
         master["trip_date"] = pd.to_datetime(master["trip_date"])
     
