@@ -313,8 +313,7 @@ st.markdown("""
 The **Vehicle Master file** contains all vehicle-related information associated with **G4S**.
 
 - If unavailable, kindly fetch the latest file from [here](https://docs.google.com/spreadsheets/d/1OBQgxo5vuVNwnvho-lZPplBpKLX1sDSbBadmQ08cu9w/edit?usp=sharing) in excel format and upload here.
-- In case of any vehicle additions or modifications, the same sheet should be updated and re-uploaded(dont change the column names if possible).
-- Column names must remain exactly the same.
+- In case of any vehicle additions or modifications, the same sheet should be updated for better usage for other employees.Kindly enter just the data, the column headers cant be modified.
 
 ---
 
