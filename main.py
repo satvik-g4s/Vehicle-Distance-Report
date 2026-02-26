@@ -6,62 +6,6 @@ import io
 st.set_page_config(layout="wide")
 
 st.title("GPS Distance Processing")
-st.markdown("""
-### 📘 GPS Distance Processing – Guidelines
-
----
-
-#### 🚗 Vehicle Master Data
-The **Vehicle Master file** contains all vehicle-related information associated with **G4S**.
-
-- If unavailable, kindly fetch the latest file from [here](https://docs.google.com/spreadsheets/d/1OBQgxo5vuVNwnvho-lZPplBpKLX1sDSbBadmQ08cu9w/edit?usp=sharing) and upload here.
-- In case of any vehicle additions or modifications, the same sheet should be updated and re-uploaded(dont change the column names if possible).
-- Column names must remain exactly the same.
-
----
-
-#### 📥 Download Existing Report
-To download the latest consolidated report:
-
-1. Upload the **Vehicles Data** file.
-2. Click **Fetch Existing Master Report**.
-3. Download the generated report.
-
----
-
-#### 🔄 Updating Daily GPS Data
-
-##### ✔ Updating Cautio Data
-- Upload the received **Cautio data** in the **3rd Upload**.
-- Ensure file is downloaded from the server in **CSV format**.
-
-##### ✔ Updating MapMyIndia Data
-- Upload the received **MapMyIndia data** in the **2nd Upload**.
-- Ensure file is downloaded from the server in **CSV format**.
-
----
-
-#### ▶ Updating Data Without Downloading Report
-If only database update is required:
-
-- Upload data in respective upload fields.
-- Click **Run**.
-- It is recommended to download the report once to verify updates.
-
----
-
-#### ⚠ Important Instructions
-- Upload files **only in their respective upload fields**.
-- Incorrect uploads may cause the program to crash.
-- If this occurs, kindly **refresh the page and upload again**.
-- Ensure all column names match the required format exactly.
-
----
-
-#### 📝 Note
-If the **Vehicle Master file is not uploaded**,  
-the report can still be generated, however vehicle-related details will not be reflected.
-""")
 
 uploaded_file_vehicles = st.file_uploader(
     "Upload Vehicles Data (xlsx)",
@@ -360,3 +304,60 @@ if uploaded_file_mmi is not None or uploaded_file_cautio is not None:
             file_name="GPS_Master_Output.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+st.markdown("""
+### 📘 GPS Distance Processing – Guidelines
+
+---
+
+#### 🚗 Vehicle Master Data
+The **Vehicle Master file** contains all vehicle-related information associated with **G4S**.
+
+- If unavailable, kindly fetch the latest file from [here](https://docs.google.com/spreadsheets/d/1OBQgxo5vuVNwnvho-lZPplBpKLX1sDSbBadmQ08cu9w/edit?usp=sharing) and upload here.
+- In case of any vehicle additions or modifications, the same sheet should be updated and re-uploaded(dont change the column names if possible).
+- Column names must remain exactly the same.
+
+---
+
+#### 📥 Download Existing Report
+To download the latest consolidated report:
+
+1. Upload the **Vehicles Data** file.
+2. Click **Fetch Existing Master Report**.
+3. Download the generated report.
+
+---
+
+#### 🔄 Updating Daily GPS Data
+
+##### ✔ Updating Cautio Data
+- Upload the received **Cautio data** in the **3rd Upload**.
+- Ensure file is downloaded from the server in **CSV format**.
+
+##### ✔ Updating MapMyIndia Data
+- Upload the received **MapMyIndia data** in the **2nd Upload**.
+- Ensure file is downloaded from the server in **CSV format**.
+
+---
+
+#### ▶ Updating Data Without Downloading Report
+If only database update is required:
+
+- Upload data in respective upload fields.
+- Click **Run**.
+- It is recommended to download the report once to verify updates.
+
+---
+
+#### ⚠ Important Instructions
+- Upload files **only in their respective upload fields**.
+- Incorrect uploads may cause the program to crash.
+- If this occurs, kindly **refresh the page and upload again**.
+- Ensure all column names match the required format exactly.
+
+---
+
+#### 📝 Note
+If the **Vehicle Master file is not uploaded**,  
+the report can still be generated, however vehicle-related details will not be reflected.
+""")
+
