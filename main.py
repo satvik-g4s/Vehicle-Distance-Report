@@ -123,8 +123,8 @@ with tab1:
     # CONFIGURABLE RULES
     # =====================================
     DAILY_DISTANCE_THRESHOLD = 5
-    WEEKLY_ACTIVE_DAYS = 5
-    MONTHLY_ACTIVE_DAYS = 20
+    WEEKLY_ACTIVE_DAYS = 4
+    MONTHLY_ACTIVE_DAYS = 15
 
     df = load_dashboard_data()
 
