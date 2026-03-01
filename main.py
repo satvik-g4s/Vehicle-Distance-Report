@@ -6,11 +6,10 @@ import io
 st.set_page_config(layout="wide")
 st.title("Vehicle-Distance-Report")
 
-#SUPABASE_URL = st.secrets["SUPABASE_URL"]
-#SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
-SUPABASE_URL = "https://junktmnuwwmkpzgppvzj.supabase.co"
-SUPABASE_KEY = "sb_publishable_ikRwi-TITT7Qhk-hdjxw2g_Q1qE_qYD"
+
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
