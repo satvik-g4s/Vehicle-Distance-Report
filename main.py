@@ -136,19 +136,19 @@ with tab1:
 
         def summary(group_col):
 
+            # ensure list format
+            if isinstance(group_col, str):
+                group_cols = [group_col]
+            else:
+                group_cols = group_col
+        
             return (
-                data.groupby([group_col, "status"])
+                data.groupby(group_cols + ["status"])
                 ["plate_number"]
                 .nunique()
                 .unstack(fill_value=0)
                 .reset_index()
             )
-
-        return (
-            summary(["Hub Name", "Location"]),
-            summary("Vendor Name"),
-            summary("Client/QRT"),
-        )
 
     # ---------------- DAILY ----------------
     with dtab:
