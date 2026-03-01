@@ -248,76 +248,76 @@ with tab1:
             summary(["Hub Name", "Location"]),
             summary("Vendor Name"),
             summary("Client/QRT")
-        )
-        # ==============================
-        # PERIOD TABS
-        # ==============================
-        dtab, wtab, mtab = st.tabs(
-            ["Daily", "Weekly", "Monthly"]
-        )
-    
-        # ---------- DAILY ----------
-        with dtab:
-    
-            daily = df[df["trip_date"] == latest_date]
-    
-            hub, vendor, client = analyse_daily(daily)
-    
-            st.subheader("Hub - Location")
-            st.dataframe(hub, use_container_width=True)
-    
-            st.subheader("Vendor")
-            st.dataframe(vendor, use_container_width=True)
-    
-            st.subheader("Client/QRT")
-            st.dataframe(client, use_container_width=True)
-    
-        # ---------- WEEKLY ----------
-        with wtab:
-    
-            week_start = latest_date - pd.Timedelta(days=6)
-    
-            weekly = df[
-                df["trip_date"].between(week_start, latest_date)
-            ]
-    
-            hub, vendor, client = analyse_period(
-                weekly,
-                WEEKLY_ACTIVE_DAYS
             )
+    # ==============================
+    # PERIOD TABS
+    # ==============================
     
-            st.subheader("Hub - Location")
-            st.dataframe(hub, use_container_width=True)
+    dtab, wtab, mtab = st.tabs(["Daily", "Weekly", "Monthly"])
     
-            st.subheader("Vendor")
-            st.dataframe(vendor, use_container_width=True)
+    # ---------- DAILY ----------
+    with dtab:
     
-            st.subheader("Client/QRT")
-            st.dataframe(client, use_container_width=True)
+        daily = df[df["trip_date"] == latest_date]
     
-        # ---------- MONTHLY ----------
-        with mtab:
+        hub, vendor, client = analyse_daily(daily, df)
     
-            month_start = latest_date.replace(day=1)
+        st.subheader("Hub - Location")
+        st.dataframe(hub, use_container_width=True)
     
-            monthly = df[
-                df["trip_date"].between(month_start, latest_date)
-            ]
+        st.subheader("Vendor")
+        st.dataframe(vendor, use_container_width=True)
     
-            hub, vendor, client = analyse_period(
-                monthly,
-                MONTHLY_ACTIVE_DAYS
-            )
+        st.subheader("Client/QRT")
+        st.dataframe(client, use_container_width=True)
     
-            st.subheader("Hub - Location")
-            st.dataframe(hub, use_container_width=True)
+    # ---------- WEEKLY ----------
+    with wtab:
     
-            st.subheader("Vendor")
-            st.dataframe(vendor, use_container_width=True)
+        week_start = latest_date - pd.Timedelta(days=6)
     
-            st.subheader("Client/QRT")
-            st.dataframe(client, use_container_width=True)
-
+        weekly = df[
+            df["trip_date"].between(week_start, latest_date)
+        ]
+    
+        hub, vendor, client = analyse_period(
+            weekly,
+            df,
+            WEEKLY_ACTIVE_DAYS
+        )
+    
+        st.subheader("Hub - Location")
+        st.dataframe(hub, use_container_width=True)
+    
+        st.subheader("Vendor")
+        st.dataframe(vendor, use_container_width=True)
+    
+        st.subheader("Client/QRT")
+        st.dataframe(client, use_container_width=True)
+    
+    # ---------- MONTHLY ----------
+    with mtab:
+    
+        month_start = latest_date.replace(day=1)
+    
+        monthly = df[
+            df["trip_date"].between(month_start, latest_date)
+        ]
+    
+        hub, vendor, client = analyse_period(
+            monthly,
+            df,
+            MONTHLY_ACTIVE_DAYS
+        )
+    
+        st.subheader("Hub - Location")
+        st.dataframe(hub, use_container_width=True)
+    
+        st.subheader("Vendor")
+        st.dataframe(vendor, use_container_width=True)
+    
+        st.subheader("Client/QRT")
+        st.dataframe(client, use_container_width=True)
     # ==============================
     # FOOTER
     # ==============================
@@ -325,7 +325,7 @@ with tab1:
     st.caption(
         f"Dashboard is based on GPS data uploaded till "
         f"{latest_date.strftime('%d-%b-%Y')}."
-    )
+        )
 with tab2:
     st.write("Fetch Report")
 
