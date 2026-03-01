@@ -102,8 +102,8 @@ with tab1:
         st.warning("Upload vehicle master & GPS data first.")
         st.stop()
 
-    # Only GPS enabled vehicles
-    df = df[df["GPS"] == "Yes"].copy()
+    # Only GPS enabled vehicles & not US Embassy
+    df = df[(df["GPS"] == "Yes") & (df["Client/QRT"].str.strip() != "US Embassy")].copy()
 
     latest_date = df["trip_date"].max()
 
