@@ -89,73 +89,183 @@ with tab1:
 
     st.header("Fleet GPS Dashboard")
 
+    # ==============================
+    # CONFIGURABLE THRESHOLDS
+    # ==============================
+    WEEKLY_ACTIVE_DAYS = 5      # You can change later
+    MONTHLY_ACTIVE_DAYS = 20    # You can change later
+    DAILY_DISTANCE_THRESHOLD = 5
+
     df = load_dashboard_data()
 
-    if df is None:
+    if df is None or df.empty:
         st.warning("Upload vehicle master & GPS data first.")
         st.stop()
 
-    df = df[df["GPS"] == "Yes"]
+    # Only GPS enabled vehicles
+    df = df[df["GPS"] == "Yes"].copy()
 
-    today = df["trip_date"].max()
+    latest_date = df["trip_date"].max()
 
-    # ==========================
-    # TOP METRICS
-    # ==========================
-    total = df["plate_number"].nunique()
-    gps_total = total
+    # ==============================
+    # TOP METRICS (Daily - Latest Date)
+    # ==============================
+    today_df = df[df["trip_date"] == latest_date]
 
-    today_df = df[df["trip_date"] == today]
+    total_gps = df["plate_number"].nunique()
 
-    active = today_df[today_df["distance"] > 5]["plate_number"].nunique()
-    inactive = today_df[today_df["distance"] <= 5]["plate_number"].nunique()
+    active_today = today_df[
+        today_df["distance"] > DAILY_DISTANCE_THRESHOLD
+    ]["plate_number"].nunique()
 
-    nodata = gps_total - today_df["plate_number"].nunique()
+    inactive_today = today_df[
+        (today_df["distance"] <= DAILY_DISTANCE_THRESHOLD)
+        & (today_df["distance"].notna())
+    ]["plate_number"].nunique()
+
+    received_today = today_df["plate_number"].nunique()
+    nodata_today = total_gps - received_today
 
     c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("GPS Vehicles", gps_total)
-    c2.metric("Active Today", active)
-    c3.metric("Inactive Today", inactive)
-    c4.metric("No Data Received", nodata)
+    c1.metric("GPS Vehicles", total_gps)
+    c2.metric("Active (Daily)", active_today)
+    c3.metric("Inactive (Daily)", inactive_today)
+    c4.metric("No Data Received", nodata_today)
 
     st.divider()
 
-    # ==========================
-    # PERIOD TABS
-    # ==========================
-    dtab, wtab, mtab = st.tabs(
-        ["Daily", "Weekly", "Monthly"]
-    )
+    # ==============================
+    # ANALYSIS FUNCTION (SAFE)
+    # ==============================
+    def analyse_daily(data):
 
-    def analyse(data):
+        if data.empty:
+            return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
-        data["status"] = "Inactive"
-        data.loc[data["distance"] > 5, "status"] = "Active"
-        data.loc[data["distance"].isna(), "status"] = "No Data"
+        data = data.copy()
 
-        def summary(group_col):
+        data.loc[:, "status"] = "Inactive"
+        data.loc[
+            data["distance"] > DAILY_DISTANCE_THRESHOLD,
+            "status"
+        ] = "Active"
 
-            # ensure list format
-            if isinstance(group_col, str):
-                group_cols = [group_col]
-            else:
-                group_cols = group_col
-        
-            return (
-                data.groupby(group_cols + ["status"])
+        data.loc[
+            data["distance"].isna(),
+            "status"
+        ] = "No Data"
+
+        def summary(group_cols):
+            if isinstance(group_cols, str):
+                group_cols = [group_cols]
+
+            result = (
+                data.groupby(group_cols + ["status"])["plate_number"]
+                .nunique()
+                .unstack(fill_value=0)
+                .reset_index()
+            )
+
+            return result
+
+        hub = summary(["Hub Name", "Location"])
+        vendor = summary("Vendor Name")
+        client = summary("Client/QRT")
+
+        return hub, vendor, client
+
+    # ==============================
+    # WEEKLY / MONTHLY VEHICLE STATUS
+    # ==============================
+    def analyse_period(data, required_active_days):
+
+        if data.empty:
+            return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+
+        data = data.copy()
+
+        data["active_flag"] = (
+            data["distance"] > DAILY_DISTANCE_THRESHOLD
+        )
+
+        # count active days per vehicle
+        vehicle_status = (
+            data.groupby("plate_number")["active_flag"]
+            .sum()
+            .reset_index()
+        )
+
+        vehicle_status["status"] = "Inactive"
+        vehicle_status.loc[
+            vehicle_status["active_flag"] >= required_active_days,
+            "status"
+        ] = "Active"
+
+        # vehicles with no records at all
+        all_vehicles = df["plate_number"].unique()
+        reported = vehicle_status["plate_number"].unique()
+
+        missing = set(all_vehicles) - set(reported)
+
+        if missing:
+            missing_df = pd.DataFrame({
+                "plate_number": list(missing),
+                "active_flag": 0,
+                "status": "No Data"
+            })
+            vehicle_status = pd.concat(
+                [vehicle_status, missing_df],
+                ignore_index=True
+            )
+
+        # merge back master info
+        vehicle_status = pd.merge(
+            vehicle_status,
+            df[[
+                "plate_number",
+                "Hub Name",
+                "Location",
+                "Vendor Name",
+                "Client/QRT"
+            ]].drop_duplicates(),
+            on="plate_number",
+            how="left"
+        )
+
+        def summary(group_cols):
+            if isinstance(group_cols, str):
+                group_cols = [group_cols]
+
+            result = (
+                vehicle_status.groupby(group_cols + ["status"])
                 ["plate_number"]
                 .nunique()
                 .unstack(fill_value=0)
                 .reset_index()
             )
 
-    # ---------------- DAILY ----------------
+            return result
+
+        hub = summary(["Hub Name", "Location"])
+        vendor = summary("Vendor Name")
+        client = summary("Client/QRT")
+
+        return hub, vendor, client
+
+    # ==============================
+    # PERIOD TABS
+    # ==============================
+    dtab, wtab, mtab = st.tabs(
+        ["Daily", "Weekly", "Monthly"]
+    )
+
+    # ---------- DAILY ----------
     with dtab:
 
-        daily = df[df["trip_date"] == today]
+        daily = df[df["trip_date"] == latest_date]
 
-        hub, vendor, client = analyse(daily)
+        hub, vendor, client = analyse_daily(daily)
 
         st.subheader("Hub - Location")
         st.dataframe(hub, use_container_width=True)
@@ -166,13 +276,19 @@ with tab1:
         st.subheader("Client/QRT")
         st.dataframe(client, use_container_width=True)
 
-    # ---------------- WEEKLY ----------------
+    # ---------- WEEKLY ----------
     with wtab:
 
-        week_start = today - pd.Timedelta(days=7)
-        weekly = df[df["trip_date"] >= week_start]
+        week_start = latest_date - pd.Timedelta(days=6)
 
-        hub, vendor, client = analyse(weekly)
+        weekly = df[
+            df["trip_date"].between(week_start, latest_date)
+        ]
+
+        hub, vendor, client = analyse_period(
+            weekly,
+            WEEKLY_ACTIVE_DAYS
+        )
 
         st.subheader("Hub - Location")
         st.dataframe(hub, use_container_width=True)
@@ -183,13 +299,19 @@ with tab1:
         st.subheader("Client/QRT")
         st.dataframe(client, use_container_width=True)
 
-    # ---------------- MONTHLY ----------------
+    # ---------- MONTHLY ----------
     with mtab:
 
-        month_start = today.replace(day=1)
-        monthly = df[df["trip_date"] >= month_start]
+        month_start = latest_date.replace(day=1)
 
-        hub, vendor, client = analyse(monthly)
+        monthly = df[
+            df["trip_date"].between(month_start, latest_date)
+        ]
+
+        hub, vendor, client = analyse_period(
+            monthly,
+            MONTHLY_ACTIVE_DAYS
+        )
 
         st.subheader("Hub - Location")
         st.dataframe(hub, use_container_width=True)
@@ -200,14 +322,14 @@ with tab1:
         st.subheader("Client/QRT")
         st.dataframe(client, use_container_width=True)
 
-latest_date = df["trip_date"].max()
-
-st.divider()
-st.caption(
-    f"Dashboard is based on GPS data uploaded till "
-    f"{latest_date.strftime('%d-%b-%Y')}."
-)
-
+    # ==============================
+    # FOOTER
+    # ==============================
+    st.divider()
+    st.caption(
+        f"Dashboard is based on GPS data uploaded till "
+        f"{latest_date.strftime('%d-%b-%Y')}."
+    )
 with tab2:
     st.write("Fetch Report")
 
