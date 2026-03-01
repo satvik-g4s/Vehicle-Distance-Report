@@ -66,8 +66,147 @@ def load_vehicle_master():
     except:
         return None
 
+def load_dashboard_data():
+
+    vehicles = load_vehicle_master()
+    master = fetch_all_gps()
+
+    if vehicles is None or master.empty:
+        return None
+
+    master["trip_date"] = pd.to_datetime(master["trip_date"])
+
+    df = pd.merge(
+        vehicles,
+        master,
+        on="plate_number",
+        how="left"
+    )
+
+    return df        
+
 with tab1:
-    st.write("Dashboard")
+
+    st.header("Fleet GPS Dashboard")
+
+    df = load_dashboard_data()
+
+    if df is None:
+        st.warning("Upload vehicle master & GPS data first.")
+        st.stop()
+
+    df = df[df["GPS"] == "Yes"]
+
+    today = df["trip_date"].max()
+
+    # ==========================
+    # TOP METRICS
+    # ==========================
+    total = df["plate_number"].nunique()
+    gps_total = total
+
+    today_df = df[df["trip_date"] == today]
+
+    active = today_df[today_df["distance"] > 5]["plate_number"].nunique()
+    inactive = today_df[today_df["distance"] <= 5]["plate_number"].nunique()
+
+    nodata = gps_total - today_df["plate_number"].nunique()
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    c1.metric("GPS Vehicles", gps_total)
+    c2.metric("Active Today", active)
+    c3.metric("Inactive Today", inactive)
+    c4.metric("No Data Received", nodata)
+
+    st.divider()
+
+    # ==========================
+    # PERIOD TABS
+    # ==========================
+    dtab, wtab, mtab = st.tabs(
+        ["Daily", "Weekly", "Monthly"]
+    )
+
+    def analyse(data):
+
+        data["status"] = "Inactive"
+        data.loc[data["distance"] > 5, "status"] = "Active"
+        data.loc[data["distance"].isna(), "status"] = "No Data"
+
+        def summary(group_col):
+
+            return (
+                data.groupby([group_col, "status"])
+                ["plate_number"]
+                .nunique()
+                .unstack(fill_value=0)
+                .reset_index()
+            )
+
+        return (
+            summary(["Hub Name", "Location"]),
+            summary("Vendor Name"),
+            summary("Client/QRT"),
+        )
+
+    # ---------------- DAILY ----------------
+    with dtab:
+
+        daily = df[df["trip_date"] == today]
+
+        hub, vendor, client = analyse(daily)
+
+        st.subheader("Hub - Location")
+        st.dataframe(hub, use_container_width=True)
+
+        st.subheader("Vendor")
+        st.dataframe(vendor, use_container_width=True)
+
+        st.subheader("Client/QRT")
+        st.dataframe(client, use_container_width=True)
+
+    # ---------------- WEEKLY ----------------
+    with wtab:
+
+        week_start = today - pd.Timedelta(days=7)
+        weekly = df[df["trip_date"] >= week_start]
+
+        hub, vendor, client = analyse(weekly)
+
+        st.subheader("Hub - Location")
+        st.dataframe(hub, use_container_width=True)
+
+        st.subheader("Vendor")
+        st.dataframe(vendor, use_container_width=True)
+
+        st.subheader("Client/QRT")
+        st.dataframe(client, use_container_width=True)
+
+    # ---------------- MONTHLY ----------------
+    with mtab:
+
+        month_start = today.replace(day=1)
+        monthly = df[df["trip_date"] >= month_start]
+
+        hub, vendor, client = analyse(monthly)
+
+        st.subheader("Hub - Location")
+        st.dataframe(hub, use_container_width=True)
+
+        st.subheader("Vendor")
+        st.dataframe(vendor, use_container_width=True)
+
+        st.subheader("Client/QRT")
+        st.dataframe(client, use_container_width=True)
+
+latest_date = df["trip_date"].max()
+
+st.divider()
+st.caption(
+    f"Dashboard is based on GPS data uploaded till "
+    f"{latest_date.strftime('%d-%b-%Y')}."
+)
 
 with tab2:
     st.write("Fetch Report")
@@ -150,32 +289,7 @@ with tab2:
 # =============================
 with tab3:
 
-    st.subheader("Vehicle Master Upload")
-
-    uploaded_file_vehicles = st.file_uploader(
-        "Upload Vehicle Master (xlsx)",
-        type=["xlsx"]
-    )
-
-    if uploaded_file_vehicles:
-
-        st.write("Saving Vehicle Master...")
-
-        try:
-            supabase.storage.from_("app-data") \
-                .remove([VEHICLE_FILE_PATH])
-        except:
-            pass
-
-        supabase.storage.from_("app-data") \
-            .upload(
-                VEHICLE_FILE_PATH,
-                uploaded_file_vehicles.getvalue(),
-                {"content-type":
-                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
-            )
-
-        st.success("Vehicle Master Updated ✅")
+    
 
     # =============================
     # LOAD STORED VEHICLES
@@ -288,6 +402,32 @@ with tab3:
                 ).execute()
 
             st.success("Database Updated ✅")
+    st.subheader("Vehicle Master Upload")
+
+    uploaded_file_vehicles = st.file_uploader(
+        "Upload Vehicle Master (xlsx)",
+        type=["xlsx"]
+    )
+
+    if uploaded_file_vehicles:
+
+        st.write("Saving Vehicle Master...")
+
+        try:
+            supabase.storage.from_("app-data") \
+                .remove([VEHICLE_FILE_PATH])
+        except:
+            pass
+
+        supabase.storage.from_("app-data") \
+            .upload(
+                VEHICLE_FILE_PATH,
+                uploaded_file_vehicles.getvalue(),
+                {"content-type":
+                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
+            )
+
+        st.success("Vehicle Master Updated ✅")
 with tab4:            
     st.markdown("""
     ### GPS Distance Processing – Guidelines
