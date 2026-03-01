@@ -119,12 +119,12 @@ with tab1:
 
     st.header("Fleet GPS Dashboard")
 
-    # ==============================
-    # CONFIGURABLE THRESHOLDS
-    # ==============================
-    WEEKLY_ACTIVE_DAYS = 5      # You can change later
-    MONTHLY_ACTIVE_DAYS = 20    # You can change later
+    # =====================================
+    # CONFIGURABLE RULES
+    # =====================================
     DAILY_DISTANCE_THRESHOLD = 5
+    WEEKLY_ACTIVE_DAYS = 5
+    MONTHLY_ACTIVE_DAYS = 20
 
     df = load_dashboard_data()
 
@@ -132,230 +132,244 @@ with tab1:
         st.warning("Upload vehicle master & GPS data first.")
         st.stop()
 
-    # Only GPS enabled vehicles & not US Embassy
-    df = df[(df["GPS"] == "Yes") & (df["Client/QRT"].str.strip() != "US Embassy")].copy()
+    # =====================================
+    # FILTER ELIGIBLE VEHICLES
+    # =====================================
+    df = df[
+        (df["GPS"] == "Yes") &
+        (df["Client/QRT"] != "US Embassy")
+    ].copy()
 
     latest_date = df["trip_date"].max()
 
-    # ==============================
-    # TOP METRICS (Daily - Latest Date)
-    # ==============================
-    today_df = df[df["trip_date"] == latest_date]
+    # =====================================
+    # KPI DISPLAY
+    # =====================================
+    def show_kpis(merged):
 
-    total_gps = df["plate_number"].nunique()
+        total = merged["plate_number"].nunique()
 
-    active_today = today_df[
-        today_df["distance"] > DAILY_DISTANCE_THRESHOLD
-    ]["plate_number"].nunique()
+        active = merged[
+            merged["status"] == "Active"
+        ]["plate_number"].nunique()
 
-    inactive_today = today_df[
-        (today_df["distance"] <= DAILY_DISTANCE_THRESHOLD)
-        & (today_df["distance"].notna())
-    ]["plate_number"].nunique()
+        inactive = merged[
+            merged["status"] == "Inactive"
+        ]["plate_number"].nunique()
 
-    received_today = today_df["plate_number"].nunique()
-    nodata_today = total_gps - received_today
+        nodata = merged[
+            merged["status"] == "No Data"
+        ]["plate_number"].nunique()
 
-    c1, c2, c3, c4 = st.columns(4)
+        c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("GPS Vehicles", total_gps)
-    c2.metric("Active (Daily)", active_today)
-    c3.metric("Inactive (Daily)", inactive_today)
-    c4.metric("No Data Received", nodata_today)
+        c1.metric("Eligible GPS Vehicles", total)
+        c2.metric("Active", active)
+        c3.metric("Inactive", inactive)
+        c4.metric("No Data Received", nodata)
 
-    st.divider()
+        st.divider()
 
-    # ==============================
-    # ANALYSIS FUNCTION (SAFE)
-    # ==============================
+    # =====================================
+    # DAILY ANALYSIS
+    # =====================================
     def analyse_daily(data, full_df):
 
         gps_master = (
-            full_df[full_df["GPS"] == "Yes"]
-            [["plate_number",
-              "Hub Name",
-              "Location",
-              "Vendor Name",
-              "Client/QRT"]]
+            full_df[
+                ["plate_number","Hub Name","Location",
+                 "Vendor Name","Client/QRT"]
+            ]
             .drop_duplicates()
-            .copy()
         )
-    
+
         received = data.copy()
-    
+
         received["status"] = "Inactive"
         received.loc[
             received["distance"] > DAILY_DISTANCE_THRESHOLD,
             "status"
         ] = "Active"
-    
+
         merged = gps_master.merge(
-            received[["plate_number", "status"]],
+            received[["plate_number","status"]],
             on="plate_number",
             how="left"
         )
-    
+
         merged["status"] = merged["status"].fillna("No Data")
-    
+
         def summary(cols):
-            if isinstance(cols, str):
-                cols = [cols]
-    
+            if isinstance(cols,str):
+                cols=[cols]
+
             return (
-                merged.groupby(cols + ["status"])
+                merged.groupby(cols+["status"])
                 ["plate_number"]
                 .nunique()
                 .unstack(fill_value=0)
                 .reset_index()
             )
-    
+
         return (
-            summary(["Hub Name", "Location"]),
+            summary(["Hub Name","Location"]),
             summary("Vendor Name"),
-            summary("Client/QRT")
+            summary("Client/QRT"),
+            merged
         )
-    # ==============================
-    # WEEKLY / MONTHLY VEHICLE STATUS
-    # ==============================
+
+    # =====================================
+    # WEEKLY / MONTHLY ANALYSIS
+    # =====================================
     def analyse_period(data, full_df, required_days):
 
         gps_master = (
-            full_df[full_df["GPS"] == "Yes"]
-            [["plate_number",
-              "Hub Name",
-              "Location",
-              "Vendor Name",
-              "Client/QRT"]]
+            full_df[
+                ["plate_number","Hub Name","Location",
+                 "Vendor Name","Client/QRT"]
+            ]
             .drop_duplicates()
-            .copy()
         )
-    
+
         if not data.empty:
-    
+
             data = data.copy()
+
             data["active_flag"] = (
                 data["distance"] > DAILY_DISTANCE_THRESHOLD
             )
-    
+
             active_days = (
                 data.groupby("plate_number")["active_flag"]
                 .sum()
                 .reset_index()
             )
-    
+
             active_days["status"] = "Inactive"
             active_days.loc[
                 active_days["active_flag"] >= required_days,
                 "status"
             ] = "Active"
-    
+
         else:
             active_days = pd.DataFrame(
-                columns=["plate_number", "status"]
+                columns=["plate_number","status"]
             )
-    
+
         merged = gps_master.merge(
-            active_days[["plate_number", "status"]],
+            active_days,
             on="plate_number",
             how="left"
         )
-    
+
         merged["status"] = merged["status"].fillna("No Data")
-    
+
         def summary(cols):
-            if isinstance(cols, str):
-                cols = [cols]
-    
+            if isinstance(cols,str):
+                cols=[cols]
+
             return (
-                merged.groupby(cols + ["status"])
+                merged.groupby(cols+["status"])
                 ["plate_number"]
                 .nunique()
                 .unstack(fill_value=0)
                 .reset_index()
             )
-    
+
         return (
-            summary(["Hub Name", "Location"]),
+            summary(["Hub Name","Location"]),
             summary("Vendor Name"),
-            summary("Client/QRT")
-            )
-    # ==============================
+            summary("Client/QRT"),
+            merged
+        )
+
+    # =====================================
     # PERIOD TABS
-    # ==============================
-    
-    dtab, wtab, mtab = st.tabs(["Daily", "Weekly", "Monthly"])
-    
+    # =====================================
+    dtab, wtab, mtab = st.tabs(
+        ["Daily","Weekly","Monthly"]
+    )
+
     # ---------- DAILY ----------
     with dtab:
-    
+
         daily = df[df["trip_date"] == latest_date]
-    
-        hub, vendor, client = analyse_daily(daily, df)
-    
+
+        hub,vendor,client,merged = analyse_daily(
+            daily, df
+        )
+
+        show_kpis(merged)
+
         st.subheader("Hub - Location")
-        st.dataframe(hub, use_container_width=True)
-    
+        st.dataframe(hub,use_container_width=True)
+
         st.subheader("Vendor")
-        st.dataframe(vendor, use_container_width=True)
-    
+        st.dataframe(vendor,use_container_width=True)
+
         st.subheader("Client/QRT")
-        st.dataframe(client, use_container_width=True)
-    
+        st.dataframe(client,use_container_width=True)
+
     # ---------- WEEKLY ----------
     with wtab:
-    
+
         week_start = latest_date - pd.Timedelta(days=6)
-    
+
         weekly = df[
-            df["trip_date"].between(week_start, latest_date)
+            df["trip_date"].between(
+                week_start,latest_date
+            )
         ]
-    
-        hub, vendor, client = analyse_period(
-            weekly,
-            df,
-            WEEKLY_ACTIVE_DAYS
+
+        hub,vendor,client,merged = analyse_period(
+            weekly,df,WEEKLY_ACTIVE_DAYS
         )
-    
+
+        show_kpis(merged)
+
         st.subheader("Hub - Location")
-        st.dataframe(hub, use_container_width=True)
-    
+        st.dataframe(hub,use_container_width=True)
+
         st.subheader("Vendor")
-        st.dataframe(vendor, use_container_width=True)
-    
+        st.dataframe(vendor,use_container_width=True)
+
         st.subheader("Client/QRT")
-        st.dataframe(client, use_container_width=True)
-    
+        st.dataframe(client,use_container_width=True)
+
     # ---------- MONTHLY ----------
     with mtab:
-    
+
         month_start = latest_date.replace(day=1)
-    
+
         monthly = df[
-            df["trip_date"].between(month_start, latest_date)
+            df["trip_date"].between(
+                month_start,latest_date
+            )
         ]
-    
-        hub, vendor, client = analyse_period(
-            monthly,
-            df,
-            MONTHLY_ACTIVE_DAYS
+
+        hub,vendor,client,merged = analyse_period(
+            monthly,df,MONTHLY_ACTIVE_DAYS
         )
-    
+
+        show_kpis(merged)
+
         st.subheader("Hub - Location")
-        st.dataframe(hub, use_container_width=True)
-    
+        st.dataframe(hub,use_container_width=True)
+
         st.subheader("Vendor")
-        st.dataframe(vendor, use_container_width=True)
-    
+        st.dataframe(vendor,use_container_width=True)
+
         st.subheader("Client/QRT")
-        st.dataframe(client, use_container_width=True)
-    # ==============================
+        st.dataframe(client,use_container_width=True)
+
+    # =====================================
     # FOOTER
-    # ==============================
+    # =====================================
     st.divider()
     st.caption(
-        f"Dashboard is based on GPS data uploaded till "
-        f"{latest_date.strftime('%d-%b-%Y')}."
-        )
+        f"Dashboard based on GPS data uploaded till "
+        f"{latest_date.strftime('%d-%b-%Y')}"
+    )
 with tab2:
     st.write("Fetch Report")
 
@@ -578,57 +592,6 @@ with tab3:
         st.success("Vehicle Master Updated ✅")
 with tab4:            
     st.markdown("""
-    ### GPS Distance Processing – Guidelines
+    ### Yet to be Updated
 
-    ---
-
-    #### ▶ Vehicle Master Data
-    The **Vehicle Master file** contains all vehicle-related information associated with **G4S**.
-
-    - If unavailable, kindly fetch the latest file from [here](https://docs.google.com/spreadsheets/d/1OBQgxo5vuVNwnvho-lZPplBpKLX1sDSbBadmQ08cu9w/edit?usp=sharing) in excel format and upload here.
-    - In case of any vehicle additions or modifications, the same sheet should be updated for better usage for other employees.Kindly enter just the data, the column headers cant be modified.
-
-    ---
-
-    #### ▶ Download Existing Report
-    To download the latest consolidated report:
-
-    1. Upload the **Vehicles Data** file.
-    2. Click **Fetch Existing Master Report**.
-    3. Download the generated report.
-
-    ---
-
-    #### ▶ Updating Daily GPS Data
-
-    ##### ✔ Updating Cautio Data
-    - Upload the received **Cautio data** in the **3rd Upload**.
-    - Ensure file is downloaded from the server in **CSV format**.
-
-    ##### ✔ Updating MapMyIndia Data
-    - Upload the received **MapMyIndia data** in the **2nd Upload**.
-    - Ensure file is in **Excel format**.
-
-    ---
-
-    #### ▶ Updating Data Without Downloading Report
-    If only database update is required:
-
-    - Upload data in respective upload fields.
-    - Click **Run**.
-    - It is recommended to download the report once to verify updates.
-
-    ---
-
-    #### ▶ Important Instructions
-    - Upload files **only in their respective upload fields**.
-    - Incorrect uploads may cause the program to crash.
-    - If this occurs, kindly **refresh the page and upload again**.
-    - Ensure all column names match the required format exactly.
-
-    ---
-
-    #### ▶ Note
-    If the **Vehicle Master file is not uploaded**,  
-    the report can still be generated, however vehicle-related details will not be reflected.
     """)
