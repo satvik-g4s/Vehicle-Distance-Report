@@ -138,189 +138,185 @@ with tab1:
     # ==============================
     # ANALYSIS FUNCTION (SAFE)
     # ==============================
-    def analyse_daily(data):
+    def analyse_daily(data, full_df):
 
-        if data.empty:
-            return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-
-        data = data.copy()
-
-        data.loc[:, "status"] = "Inactive"
-        data.loc[
-            data["distance"] > DAILY_DISTANCE_THRESHOLD,
+        gps_master = (
+            full_df[full_df["GPS"] == "Yes"]
+            [["plate_number",
+              "Hub Name",
+              "Location",
+              "Vendor Name",
+              "Client/QRT"]]
+            .drop_duplicates()
+            .copy()
+        )
+    
+        received = data.copy()
+    
+        received["status"] = "Inactive"
+        received.loc[
+            received["distance"] > DAILY_DISTANCE_THRESHOLD,
             "status"
         ] = "Active"
-
-        data.loc[
-            data["distance"].isna(),
-            "status"
-        ] = "No Data"
-
-        def summary(group_cols):
-            if isinstance(group_cols, str):
-                group_cols = [group_cols]
-
-            result = (
-                data.groupby(group_cols + ["status"])["plate_number"]
-                .nunique()
-                .unstack(fill_value=0)
-                .reset_index()
-            )
-
-            return result
-
-        hub = summary(["Hub Name", "Location"])
-        vendor = summary("Vendor Name")
-        client = summary("Client/QRT")
-
-        return hub, vendor, client
-
-    # ==============================
-    # WEEKLY / MONTHLY VEHICLE STATUS
-    # ==============================
-    def analyse_period(data, required_active_days):
-
-        if data.empty:
-            return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-
-        data = data.copy()
-
-        data["active_flag"] = (
-            data["distance"] > DAILY_DISTANCE_THRESHOLD
-        )
-
-        # count active days per vehicle
-        vehicle_status = (
-            data.groupby("plate_number")["active_flag"]
-            .sum()
-            .reset_index()
-        )
-
-        vehicle_status["status"] = "Inactive"
-        vehicle_status.loc[
-            vehicle_status["active_flag"] >= required_active_days,
-            "status"
-        ] = "Active"
-
-        # vehicles with no records at all
-        all_vehicles = df["plate_number"].unique()
-        reported = vehicle_status["plate_number"].unique()
-
-        missing = set(all_vehicles) - set(reported)
-
-        if missing:
-            missing_df = pd.DataFrame({
-                "plate_number": list(missing),
-                "active_flag": 0,
-                "status": "No Data"
-            })
-            vehicle_status = pd.concat(
-                [vehicle_status, missing_df],
-                ignore_index=True
-            )
-
-        # merge back master info
-        vehicle_status = pd.merge(
-            vehicle_status,
-            df[[
-                "plate_number",
-                "Hub Name",
-                "Location",
-                "Vendor Name",
-                "Client/QRT"
-            ]].drop_duplicates(),
+    
+        merged = gps_master.merge(
+            received[["plate_number", "status"]],
             on="plate_number",
             how="left"
         )
-
-        def summary(group_cols):
-            if isinstance(group_cols, str):
-                group_cols = [group_cols]
-
-            result = (
-                vehicle_status.groupby(group_cols + ["status"])
+    
+        merged["status"] = merged["status"].fillna("No Data")
+    
+        def summary(cols):
+            if isinstance(cols, str):
+                cols = [cols]
+    
+            return (
+                merged.groupby(cols + ["status"])
                 ["plate_number"]
                 .nunique()
                 .unstack(fill_value=0)
                 .reset_index()
             )
-
-            return result
-
-        hub = summary(["Hub Name", "Location"])
-        vendor = summary("Vendor Name")
-        client = summary("Client/QRT")
-
-        return hub, vendor, client
-
-    # ==============================
-    # PERIOD TABS
-    # ==============================
-    dtab, wtab, mtab = st.tabs(
-        ["Daily", "Weekly", "Monthly"]
-    )
-
-    # ---------- DAILY ----------
-    with dtab:
-
-        daily = df[df["trip_date"] == latest_date]
-
-        hub, vendor, client = analyse_daily(daily)
-
-        st.subheader("Hub - Location")
-        st.dataframe(hub, use_container_width=True)
-
-        st.subheader("Vendor")
-        st.dataframe(vendor, use_container_width=True)
-
-        st.subheader("Client/QRT")
-        st.dataframe(client, use_container_width=True)
-
-    # ---------- WEEKLY ----------
-    with wtab:
-
-        week_start = latest_date - pd.Timedelta(days=6)
-
-        weekly = df[
-            df["trip_date"].between(week_start, latest_date)
-        ]
-
-        hub, vendor, client = analyse_period(
-            weekly,
-            WEEKLY_ACTIVE_DAYS
+    
+        return (
+            summary(["Hub Name", "Location"]),
+            summary("Vendor Name"),
+            summary("Client/QRT")
         )
+    # ==============================
+    # WEEKLY / MONTHLY VEHICLE STATUS
+    # ==============================
+    def analyse_period(data, full_df, required_days):
 
-        st.subheader("Hub - Location")
-        st.dataframe(hub, use_container_width=True)
-
-        st.subheader("Vendor")
-        st.dataframe(vendor, use_container_width=True)
-
-        st.subheader("Client/QRT")
-        st.dataframe(client, use_container_width=True)
-
-    # ---------- MONTHLY ----------
-    with mtab:
-
-        month_start = latest_date.replace(day=1)
-
-        monthly = df[
-            df["trip_date"].between(month_start, latest_date)
-        ]
-
-        hub, vendor, client = analyse_period(
-            monthly,
-            MONTHLY_ACTIVE_DAYS
+        gps_master = (
+            full_df[full_df["GPS"] == "Yes"]
+            [["plate_number",
+              "Hub Name",
+              "Location",
+              "Vendor Name",
+              "Client/QRT"]]
+            .drop_duplicates()
+            .copy()
         )
-
-        st.subheader("Hub - Location")
-        st.dataframe(hub, use_container_width=True)
-
-        st.subheader("Vendor")
-        st.dataframe(vendor, use_container_width=True)
-
-        st.subheader("Client/QRT")
-        st.dataframe(client, use_container_width=True)
+    
+        if not data.empty:
+    
+            data = data.copy()
+            data["active_flag"] = (
+                data["distance"] > DAILY_DISTANCE_THRESHOLD
+            )
+    
+            active_days = (
+                data.groupby("plate_number")["active_flag"]
+                .sum()
+                .reset_index()
+            )
+    
+            active_days["status"] = "Inactive"
+            active_days.loc[
+                active_days["active_flag"] >= required_days,
+                "status"
+            ] = "Active"
+    
+        else:
+            active_days = pd.DataFrame(
+                columns=["plate_number", "status"]
+            )
+    
+        merged = gps_master.merge(
+            active_days[["plate_number", "status"]],
+            on="plate_number",
+            how="left"
+        )
+    
+        merged["status"] = merged["status"].fillna("No Data")
+    
+        def summary(cols):
+            if isinstance(cols, str):
+                cols = [cols]
+    
+            return (
+                merged.groupby(cols + ["status"])
+                ["plate_number"]
+                .nunique()
+                .unstack(fill_value=0)
+                .reset_index()
+            )
+    
+        return (
+            summary(["Hub Name", "Location"]),
+            summary("Vendor Name"),
+            summary("Client/QRT")
+        )
+        # ==============================
+        # PERIOD TABS
+        # ==============================
+        dtab, wtab, mtab = st.tabs(
+            ["Daily", "Weekly", "Monthly"]
+        )
+    
+        # ---------- DAILY ----------
+        with dtab:
+    
+            daily = df[df["trip_date"] == latest_date]
+    
+            hub, vendor, client = analyse_daily(daily)
+    
+            st.subheader("Hub - Location")
+            st.dataframe(hub, use_container_width=True)
+    
+            st.subheader("Vendor")
+            st.dataframe(vendor, use_container_width=True)
+    
+            st.subheader("Client/QRT")
+            st.dataframe(client, use_container_width=True)
+    
+        # ---------- WEEKLY ----------
+        with wtab:
+    
+            week_start = latest_date - pd.Timedelta(days=6)
+    
+            weekly = df[
+                df["trip_date"].between(week_start, latest_date)
+            ]
+    
+            hub, vendor, client = analyse_period(
+                weekly,
+                WEEKLY_ACTIVE_DAYS
+            )
+    
+            st.subheader("Hub - Location")
+            st.dataframe(hub, use_container_width=True)
+    
+            st.subheader("Vendor")
+            st.dataframe(vendor, use_container_width=True)
+    
+            st.subheader("Client/QRT")
+            st.dataframe(client, use_container_width=True)
+    
+        # ---------- MONTHLY ----------
+        with mtab:
+    
+            month_start = latest_date.replace(day=1)
+    
+            monthly = df[
+                df["trip_date"].between(month_start, latest_date)
+            ]
+    
+            hub, vendor, client = analyse_period(
+                monthly,
+                MONTHLY_ACTIVE_DAYS
+            )
+    
+            st.subheader("Hub - Location")
+            st.dataframe(hub, use_container_width=True)
+    
+            st.subheader("Vendor")
+            st.dataframe(vendor, use_container_width=True)
+    
+            st.subheader("Client/QRT")
+            st.dataframe(client, use_container_width=True)
 
     # ==============================
     # FOOTER
