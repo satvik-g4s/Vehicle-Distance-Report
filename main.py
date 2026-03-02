@@ -182,45 +182,53 @@ with tab1:
             ]
             .drop_duplicates()
         )
-
+    
         received = data.copy()
-
+    
         received["status"] = "Inactive"
         received.loc[
             received["distance"] > DAILY_DISTANCE_THRESHOLD,
             "status"
         ] = "Active"
-
+    
         merged = gps_master.merge(
             received[["plate_number","status"]],
             on="plate_number",
             how="left"
         )
-
+    
         merged["status"] = merged["status"].fillna("No Data")
-
+    
         def summary(cols):
-
+    
             if isinstance(cols, str):
                 cols = [cols]
-        
+    
             grouped = (
                 merged.groupby(cols + ["status"])
                 ["plate_number"]
                 .unique()
                 .reset_index()
             )
-        
+    
             pivot = grouped.pivot_table(
                 index=cols,
                 columns="status",
                 values="plate_number",
                 aggfunc="first"
             ).reset_index()
-        
+    
             pivot = pivot.fillna(value=[])
-        
+    
             return pivot
+    
+        # ✅ THIS WAS MISSING
+        return (
+            summary(["Hub Name","Location"]),
+            summary("Vendor Name"),
+            summary("Client/QRT"),
+            merged
+        )
 
     # =====================================
     # WEEKLY / MONTHLY ANALYSIS
@@ -290,6 +298,12 @@ with tab1:
             pivot = pivot.fillna(value=[])
         
             return pivot
+        return (
+            summary(["Hub Name","Location"]),
+            summary("Vendor Name"),
+            summary("Client/QRT"),
+            merged
+        )
 
     def render_drilldown(df, title, group_cols):
     
