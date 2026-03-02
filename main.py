@@ -200,23 +200,27 @@ with tab1:
         merged["status"] = merged["status"].fillna("No Data")
 
         def summary(cols):
-            if isinstance(cols,str):
-                cols=[cols]
 
-            return (
-                merged.groupby(cols+["status"])
+            if isinstance(cols, str):
+                cols = [cols]
+        
+            grouped = (
+                merged.groupby(cols + ["status"])
                 ["plate_number"]
-                .nunique()
-                .unstack(fill_value=0)
+                .unique()
                 .reset_index()
             )
-
-        return (
-            summary(["Hub Name","Location"]),
-            summary("Vendor Name"),
-            summary("Client/QRT"),
-            merged
-        )
+        
+            pivot = grouped.pivot_table(
+                index=cols,
+                columns="status",
+                values="plate_number",
+                aggfunc="first"
+            ).reset_index()
+        
+            pivot = pivot.fillna(value=[])
+        
+            return pivot
 
     # =====================================
     # WEEKLY / MONTHLY ANALYSIS
@@ -265,23 +269,59 @@ with tab1:
         merged["status"] = merged["status"].fillna("No Data")
 
         def summary(cols):
-            if isinstance(cols,str):
-                cols=[cols]
 
-            return (
-                merged.groupby(cols+["status"])
+            if isinstance(cols, str):
+                cols = [cols]
+        
+            grouped = (
+                merged.groupby(cols + ["status"])
                 ["plate_number"]
-                .nunique()
-                .unstack(fill_value=0)
+                .unique()
                 .reset_index()
             )
+        
+            pivot = grouped.pivot_table(
+                index=cols,
+                columns="status",
+                values="plate_number",
+                aggfunc="first"
+            ).reset_index()
+        
+            pivot = pivot.fillna(value=[])
+        
+            return pivot
 
-        return (
-            summary(["Hub Name","Location"]),
-            summary("Vendor Name"),
-            summary("Client/QRT"),
-            merged
-        )
+    def render_drilldown(df, title, group_cols):
+    
+        st.subheader(title)
+    
+        for _, row in df.iterrows():
+    
+            name = " | ".join(
+                str(row[c]) for c in group_cols
+            )
+    
+            active = len(row.get("Active", []))
+            inactive = len(row.get("Inactive", []))
+            nodata = len(row.get("No Data", []))
+    
+            with st.expander(
+                f"{name}  |  ✅ {active}  ⚠️ {inactive}  ❌ {nodata}"
+            ):
+    
+                c1, c2, c3 = st.columns(3)
+    
+                with c1:
+                    st.markdown("**Active Vehicles**")
+                    st.write(row.get("Active", []))
+    
+                with c2:
+                    st.markdown("**Inactive Vehicles**")
+                    st.write(row.get("Inactive", []))
+    
+                with c3:
+                    st.markdown("**No Data Vehicles**")
+                    st.write(row.get("No Data", []))
 
     # =====================================
     # PERIOD TABS
@@ -328,13 +368,25 @@ with tab1:
         show_kpis(merged)
 
         st.subheader("Hub - Location")
-        st.dataframe(hub,use_container_width=True)
+        render_drilldown(
+            hub,
+            "Hub - Location",
+            ["Hub Name","Location"]
+        )
 
         st.subheader("Vendor")
-        st.dataframe(vendor,use_container_width=True)
+        render_drilldown(
+            vendor,
+            "Vendor",
+            ["Vendor Name"]
+        )
 
         st.subheader("Client/QRT")
-        st.dataframe(client,use_container_width=True)
+        render_drilldown(
+            client,
+            "Client/QRT",
+            ["Client/QRT"]
+        )
 
     # ---------- MONTHLY ----------
     with mtab:
