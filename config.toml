@@ -1,0 +1,7 @@
+[theme]
+base = "light"
+primaryColor = "#0047AB"  # Darker blue instead of red
+backgroundColor = "#FFFFFF" # Pure white
+secondaryBackgroundColor = "#F0F2F6" # Light gray for widgets
+textColor = "#262730" # Dark gray/black for better readability
+font = "sans serif"
