@@ -308,15 +308,60 @@ with tab1:
         
         with col1:
             st.subheader("Hub - Location")
-            st.dataframe(hub, use_container_width=True)
+            st.dataframe(
+                hub.style
+                    .set_table_styles([
+                        {"selector": "th", 
+                         "props": [("background-color", "#F1F5F9"),
+                                   ("color", "#111827"),
+                                   ("font-weight", "600")]},
+                    ])
+                    .set_properties(**{
+                        "background-color": "white",
+                        "color": "#111827",
+                        "border-color": "#E5E7EB"
+                    }),
+                use_container_width=True,
+                height=400
+            )
         
         with col2:
             st.subheader("Vendor")
-            st.dataframe(vendor, use_container_width=True)
+            st.dataframe(
+                vendor.style
+                    .set_table_styles([
+                        {"selector": "th", 
+                         "props": [("background-color", "#F1F5F9"),
+                                   ("color", "#111827"),
+                                   ("font-weight", "600")]},
+                    ])
+                    .set_properties(**{
+                        "background-color": "white",
+                        "color": "#111827",
+                        "border-color": "#E5E7EB"
+                    }),
+                use_container_width=True,
+                height=400
+            )
         
         with col3:
             st.subheader("Client/QRT")
-            st.dataframe(client, use_container_width=True)
+            st.dataframe(
+                client.style
+                    .set_table_styles([
+                        {"selector": "th", 
+                         "props": [("background-color", "#F1F5F9"),
+                                   ("color", "#111827"),
+                                   ("font-weight", "600")]},
+                    ])
+                    .set_properties(**{
+                        "background-color": "white",
+                        "color": "#111827",
+                        "border-color": "#E5E7EB"
+                    }),
+                use_container_width=True,
+                height=400
+            )
 
     # ---------- WEEKLY ----------
     with wtab:
