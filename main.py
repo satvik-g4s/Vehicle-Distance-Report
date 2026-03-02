@@ -301,14 +301,19 @@ with tab1:
 
         show_kpis(merged)
 
-        st.subheader("Hub - Location")
-        st.dataframe(hub,use_container_width=True)
-
-        st.subheader("Vendor")
-        st.dataframe(vendor,use_container_width=True)
-
-        st.subheader("Client/QRT")
-        st.dataframe(client,use_container_width=True)
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.subheader("Hub - Location")
+            st.dataframe(hub, use_container_width=True)
+        
+        with col2:
+            st.subheader("Vendor")
+            st.dataframe(vendor, use_container_width=True)
+        
+        with col3:
+            st.subheader("Client/QRT")
+            st.dataframe(client, use_container_width=True)
 
     # ---------- WEEKLY ----------
     with wtab:
@@ -327,14 +332,19 @@ with tab1:
 
         show_kpis(merged)
 
-        st.subheader("Hub - Location")
-        st.dataframe(hub,use_container_width=True)
-
-        st.subheader("Vendor")
-        st.dataframe(vendor,use_container_width=True)
-
-        st.subheader("Client/QRT")
-        st.dataframe(client,use_container_width=True)
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.subheader("Hub - Location")
+            st.dataframe(hub, use_container_width=True)
+        
+        with col2:
+            st.subheader("Vendor")
+            st.dataframe(vendor, use_container_width=True)
+        
+        with col3:
+            st.subheader("Client/QRT")
+            st.dataframe(client, use_container_width=True)
 
     # ---------- MONTHLY ----------
     with mtab:
@@ -353,14 +363,19 @@ with tab1:
 
         show_kpis(merged)
 
-        st.subheader("Hub - Location")
-        st.dataframe(hub,use_container_width=True)
-
-        st.subheader("Vendor")
-        st.dataframe(vendor,use_container_width=True)
-
-        st.subheader("Client/QRT")
-        st.dataframe(client,use_container_width=True)
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.subheader("Hub - Location")
+            st.dataframe(hub, use_container_width=True)
+        
+        with col2:
+            st.subheader("Vendor")
+            st.dataframe(vendor, use_container_width=True)
+        
+        with col3:
+            st.subheader("Client/QRT")
+            st.dataframe(client, use_container_width=True)
 
     # =====================================
     # FOOTER
