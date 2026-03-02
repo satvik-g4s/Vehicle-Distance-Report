@@ -4,6 +4,82 @@ from supabase import create_client
 from io import BytesIO
 import io
 st.set_page_config(layout="wide")
+
+st.markdown("""
+<style>
+
+/* -------- PAGE -------- */
+.block-container {
+    padding-top: 2rem;
+    background-color: #F8FAFC;
+}
+
+/* -------- HEADERS -------- */
+h1, h2, h3 {
+    color: #111827;
+    font-weight: 700;
+}
+
+/* -------- KPI CARDS -------- */
+[data-testid="metric-container"] {
+    background: white;
+    border-radius: 12px;
+    padding: 18px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0px 2px 6px rgba(0,0,0,0.05);
+}
+
+[data-testid="metric-container"] label {
+    color: #6B7280;
+    font-weight: 600;
+}
+
+[data-testid="metric-container"] div {
+    color: #111827;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+/* -------- TABS -------- */
+button[data-baseweb="tab"] {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+button[data-baseweb="tab"][aria-selected="true"] {
+    border-bottom: 3px solid #2563EB;
+}
+
+/* -------- DATAFRAME -------- */
+[data-testid="stDataFrame"] {
+    background-color: white;
+    border-radius: 10px;
+    border: 1px solid #E5E7EB;
+}
+
+/* Table header */
+thead tr th {
+    background-color: #F1F5F9 !important;
+    color: #111827 !important;
+    font-weight: 700 !important;
+}
+
+/* Table rows */
+tbody tr {
+    background-color: white !important;
+    color: #111827 !important;
+}
+
+/* Divider */
+hr {
+    border: none;
+    height: 1px;
+    background: #E5E7EB;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 def check_password():
 
     def password_entered():
