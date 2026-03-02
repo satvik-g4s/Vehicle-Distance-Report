@@ -200,35 +200,32 @@ with tab1:
         merged["status"] = merged["status"].fillna("No Data")
     
         def summary(cols):
-    
+
             if isinstance(cols, str):
                 cols = [cols]
-    
+        
             grouped = (
                 merged.groupby(cols + ["status"])
                 ["plate_number"]
                 .unique()
                 .reset_index()
             )
-    
+        
             pivot = grouped.pivot_table(
                 index=cols,
                 columns="status",
                 values="plate_number",
                 aggfunc="first"
             ).reset_index()
-    
-            pivot = pivot.fillna(value=[])
-    
+        
+            # ✅ SAFE LIST FIX
+            for col in ["Active", "Inactive", "No Data"]:
+                if col in pivot.columns:
+                    pivot[col] = pivot[col].apply(
+                        lambda x: x if isinstance(x, (list, tuple)) else []
+                    )
+        
             return pivot
-    
-        # ✅ THIS WAS MISSING
-        return (
-            summary(["Hub Name","Location"]),
-            summary("Vendor Name"),
-            summary("Client/QRT"),
-            merged
-        )
 
     # =====================================
     # WEEKLY / MONTHLY ANALYSIS
@@ -295,15 +292,14 @@ with tab1:
                 aggfunc="first"
             ).reset_index()
         
-            pivot = pivot.fillna(value=[])
+            # ✅ SAFE LIST FIX
+            for col in ["Active", "Inactive", "No Data"]:
+                if col in pivot.columns:
+                    pivot[col] = pivot[col].apply(
+                        lambda x: x if isinstance(x, (list, tuple)) else []
+                    )
         
             return pivot
-        return (
-            summary(["Hub Name","Location"]),
-            summary("Vendor Name"),
-            summary("Client/QRT"),
-            merged
-        )
 
     def render_drilldown(df, title, group_cols):
     
