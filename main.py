@@ -182,50 +182,41 @@ with tab1:
             ]
             .drop_duplicates()
         )
-    
+
         received = data.copy()
-    
+
         received["status"] = "Inactive"
         received.loc[
             received["distance"] > DAILY_DISTANCE_THRESHOLD,
             "status"
         ] = "Active"
-    
+
         merged = gps_master.merge(
             received[["plate_number","status"]],
             on="plate_number",
             how="left"
         )
-    
-        merged["status"] = merged["status"].fillna("No Data")
-    
-        def summary(cols):
 
-            if isinstance(cols, str):
-                cols = [cols]
-        
-            grouped = (
-                merged.groupby(cols + ["status"])
+        merged["status"] = merged["status"].fillna("No Data")
+
+        def summary(cols):
+            if isinstance(cols,str):
+                cols=[cols]
+
+            return (
+                merged.groupby(cols+["status"])
                 ["plate_number"]
-                .unique()
+                .nunique()
+                .unstack(fill_value=0)
                 .reset_index()
             )
-        
-            pivot = grouped.pivot_table(
-                index=cols,
-                columns="status",
-                values="plate_number",
-                aggfunc="first"
-            ).reset_index()
-        
-            # ✅ SAFE LIST FIX
-            for col in ["Active", "Inactive", "No Data"]:
-                if col in pivot.columns:
-                    pivot[col] = pivot[col].apply(
-                        lambda x: x if isinstance(x, (list, tuple)) else []
-                    )
-        
-            return pivot
+
+        return (
+            summary(["Hub Name","Location"]),
+            summary("Vendor Name"),
+            summary("Client/QRT"),
+            merged
+        )
 
     # =====================================
     # WEEKLY / MONTHLY ANALYSIS
@@ -274,64 +265,23 @@ with tab1:
         merged["status"] = merged["status"].fillna("No Data")
 
         def summary(cols):
+            if isinstance(cols,str):
+                cols=[cols]
 
-            if isinstance(cols, str):
-                cols = [cols]
-        
-            grouped = (
-                merged.groupby(cols + ["status"])
+            return (
+                merged.groupby(cols+["status"])
                 ["plate_number"]
-                .unique()
+                .nunique()
+                .unstack(fill_value=0)
                 .reset_index()
             )
-        
-            pivot = grouped.pivot_table(
-                index=cols,
-                columns="status",
-                values="plate_number",
-                aggfunc="first"
-            ).reset_index()
-        
-            # ✅ SAFE LIST FIX
-            for col in ["Active", "Inactive", "No Data"]:
-                if col in pivot.columns:
-                    pivot[col] = pivot[col].apply(
-                        lambda x: x if isinstance(x, (list, tuple)) else []
-                    )
-        
-            return pivot
 
-    def render_drilldown(df, title, group_cols):
-    
-        st.subheader(title)
-    
-        for _, row in df.iterrows():
-    
-            name = " | ".join(
-                str(row[c]) for c in group_cols
-            )
-    
-            active = len(row.get("Active", []))
-            inactive = len(row.get("Inactive", []))
-            nodata = len(row.get("No Data", []))
-    
-            with st.expander(
-                f"{name}  |  ✅ {active}  ⚠️ {inactive}  ❌ {nodata}"
-            ):
-    
-                c1, c2, c3 = st.columns(3)
-    
-                with c1:
-                    st.markdown("**Active Vehicles**")
-                    st.write(row.get("Active", []))
-    
-                with c2:
-                    st.markdown("**Inactive Vehicles**")
-                    st.write(row.get("Inactive", []))
-    
-                with c3:
-                    st.markdown("**No Data Vehicles**")
-                    st.write(row.get("No Data", []))
+        return (
+            summary(["Hub Name","Location"]),
+            summary("Vendor Name"),
+            summary("Client/QRT"),
+            merged
+        )
 
     # =====================================
     # PERIOD TABS
@@ -378,25 +328,13 @@ with tab1:
         show_kpis(merged)
 
         st.subheader("Hub - Location")
-        render_drilldown(
-            hub,
-            "Hub - Location",
-            ["Hub Name","Location"]
-        )
+        st.dataframe(hub,use_container_width=True)
 
         st.subheader("Vendor")
-        render_drilldown(
-            vendor,
-            "Vendor",
-            ["Vendor Name"]
-        )
+        st.dataframe(vendor,use_container_width=True)
 
         st.subheader("Client/QRT")
-        render_drilldown(
-            client,
-            "Client/QRT",
-            ["Client/QRT"]
-        )
+        st.dataframe(client,use_container_width=True)
 
     # ---------- MONTHLY ----------
     with mtab:
@@ -559,8 +497,9 @@ with tab3:
                     .reset_index()
                 )
 
-                mmi = mmi.rename(
-                    columns={"Device": "plate_number"}
+                mmi.rename(
+                    columns={"Device": "plate_number"},
+                    inplace=True
                 )
 
                 mmi.columns = [
