@@ -549,9 +549,8 @@ with tab3:
                     .reset_index()
                 )
 
-                mmi.rename(
-                    columns={"Device": "plate_number"},
-                    inplace=True
+                mmi = mmi.rename(
+                    columns={"Device": "plate_number"}
                 )
 
                 mmi.columns = [
