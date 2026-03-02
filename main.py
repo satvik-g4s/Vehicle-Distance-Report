@@ -319,7 +319,7 @@ with tab1:
                     .set_properties(**{
                         "background-color": "white",
                         "color": "#111827",
-                        "border-color": "#E5E7EB"
+                        "border-color": "#525457"
                     }),
                 use_container_width=True,
                 height=400
@@ -338,7 +338,7 @@ with tab1:
                     .set_properties(**{
                         "background-color": "white",
                         "color": "#111827",
-                        "border-color": "#E5E7EB"
+                        "border-color": "#525457"
                     }),
                 use_container_width=True,
                 height=400
@@ -357,7 +357,7 @@ with tab1:
                     .set_properties(**{
                         "background-color": "white",
                         "color": "#111827",
-                        "border-color": "#E5E7EB"
+                        "border-color": "#525457"
                     }),
                 use_container_width=True,
                 height=400
