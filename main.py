@@ -181,14 +181,13 @@ with tab1:
                     ["All"] + sorted(merged["Hub Name"].dropna().unique().tolist()),
                     key=f"{prefix}_hub"
                 )
-            
             with f2:
-                vendor_filter = st.selectbox(
-                    "Vendor",
-                    ["All"] + sorted(merged["Vendor Name"].dropna().unique().tolist()),
-                    key=f"{prefix}_vendor"
-                )
-            
+                location_filter = st.selectbox(
+                    "Location",
+                    ["All"] + sorted(merged["Location"].dropna().unique().tolist()),
+                    key=f"{prefix}_location"
+                )            
+
             with f3:
                 client_filter = st.selectbox(
                     "Client",
@@ -196,12 +195,14 @@ with tab1:
                     key=f"{prefix}_client"
                 )
             
+
             with f4:
-                location_filter = st.selectbox(
-                    "Location",
-                    ["All"] + sorted(merged["Location"].dropna().unique().tolist()),
-                    key=f"{prefix}_location"
+                vendor_filter = st.selectbox(
+                    "Vendor",
+                    ["All"] + sorted(merged["Vendor Name"].dropna().unique().tolist()),
+                    key=f"{prefix}_vendor"
                 )
+            
 
         # ---------------- APPLY FILTERS ----------------
         filtered = merged.copy()
@@ -243,8 +244,8 @@ with tab1:
 
                 st.dataframe(
                     filtered[filtered["status"] == "Active"][
-                        ["plate_number", "Hub Name", "Location",
-                         "Vendor Name", "Client/QRT"]
+                        ["Hub Name", "Location",
+                         "Vendor Name", "Client/QRT", "plate_number"]
                     ],
                     width="stretch",
                     height=350
@@ -257,9 +258,9 @@ with tab1:
                 st.metric("Count", inactive)
 
                 st.dataframe(
-                    filtered[filtered["status"] == "Inactive"][
-                        ["plate_number", "Hub Name", "Location",
-                         "Vendor Name", "Client/QRT"]
+                    == "Inactive"][
+                        ["Hub Name", "Location",
+                         "Vendor Name", "Client/QRT", "plate_number"]
                     ],
                     width="stretch",
                     height=350
@@ -273,8 +274,8 @@ with tab1:
 
                 st.dataframe(
                     filtered[filtered["status"] == "No Data"][
-                        ["plate_number", "Hub Name", "Location",
-                         "Vendor Name", "Client/QRT"]
+                        ["Hub Name", "Location",
+                         "Vendor Name", "Client/QRT", "plate_number"]
                     ],
                     width="stretch",
                     height=350
