@@ -244,7 +244,7 @@ with tab1:
         # -------- ACTIVE --------
         with c1:
             with st.container(border=True):
-                st.markdown("## 🟢 Active")
+                st.markdown("## Active")
                 st.metric("Count", active["plate_number"].nunique())
     
                 st.dataframe(
@@ -259,7 +259,7 @@ with tab1:
         # -------- INACTIVE --------
         with c2:
             with st.container(border=True):
-                st.markdown("## 🔴 Inactive")
+                st.markdown("## Inactive")
                 st.metric("Count", inactive["plate_number"].nunique())
     
                 st.dataframe(
@@ -274,7 +274,7 @@ with tab1:
         # -------- NO DATA --------
         with c3:
             with st.container(border=True):
-                st.markdown("## 🟠 No Data")
+                st.markdown("## No Data")
                 st.metric("Count", nodata["plate_number"].nunique())
     
                 st.dataframe(
