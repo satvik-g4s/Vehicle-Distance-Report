@@ -207,7 +207,7 @@ def load_dashboard_data():
 
 with tab1:
 
-    st.header("Fleet GPS Dashboard")
+    st.header("Vehicles Dashboard")
 
     # =====================================
     # CONFIGURABLE RULES
@@ -633,6 +633,7 @@ with tab3:
                 ).execute()
 
             st.success("Database Updated ✅")
+            st.rerun()
     st.subheader("Vehicle Master Upload")
 
     st.divider()
@@ -673,6 +674,7 @@ with tab3:
             load_vehicle_master.clear()
     
             st.success("Vehicle Master Updated Successfully ✅")
+            st.rerun()
 with tab4:            
     st.markdown("""
     ###Yet to be Added
