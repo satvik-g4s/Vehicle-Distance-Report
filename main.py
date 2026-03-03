@@ -359,20 +359,8 @@ with tab1:
 
         show_status_tables(
             merged,
-            ["Hub Name","Location"],
+            ["Hub Name","Location", "Vendor Name", "Client/QRT"],
             " Vehicles by Hub & Location"
-        )
-
-        show_status_tables(
-            merged,
-            ["Vendor Name"],
-            " Vehicles by Vendor"
-        )
-
-        show_status_tables(
-            merged,
-            ["Client/QRT"],
-            " Vehicles by Client/QRT"
         )
 
     # ---------- WEEKLY ----------
@@ -407,20 +395,8 @@ with tab1:
 
         show_status_tables(
             merged,
-            ["Hub Name","Location"],
-            " Vehicles by Hub & Location (Weekly)"
-        )
-
-        show_status_tables(
-            merged,
-            ["Vendor Name"],
-            " Vehicles by Vendor (Weekly)"
-        )
-
-        show_status_tables(
-            merged,
-            ["Client/QRT"],
-            " Vehicles by Client/QRT (Weekly)"
+            ["Hub Name","Location", "Vendor Name", "Client/QRT"],
+            " Vehicles by Hub & Location"
         )
 
 
