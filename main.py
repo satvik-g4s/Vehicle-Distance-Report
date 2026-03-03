@@ -181,38 +181,34 @@ with tab1:
     def show_status_tables(df, group_cols, title):
 
         st.subheader(title)
-
-        c1, c2, c3 = st.columns(3)
-
-        with c1:
-            st.markdown("###  Active")
-            st.dataframe(
-                df[df["status"] == "Active"]
-                [group_cols + ["plate_number"]],
-               width="stretch",
-                height=300
-            )
-
-        with c2:
-            st.markdown("###  Inactive")
-            st.dataframe(
-                df[df["status"] == "Inactive"]
-                [group_cols + ["plate_number"]],
-               width="stretch",
-                height=300
-            )
-
-        with c3:
-            st.markdown("###  No Data")
-            st.dataframe(
-                df[df["status"] == "No Data"]
-                [group_cols + ["plate_number"]],
-               width="stretch",
-                height=300
-            )
-
-        st.divider()
-
+    
+        # -------- Active --------
+        st.markdown("### Active")
+        st.dataframe(
+            df[df["status"] == "Active"]
+            [group_cols + ["plate_number"]],
+            width="stretch",
+            height=350
+        )
+    
+        # -------- Inactive --------
+        st.markdown("### Inactive")
+        st.dataframe(
+            df[df["status"] == "Inactive"]
+            [group_cols + ["plate_number"]],
+            width="stretch",
+            height=350
+        )
+    
+        # -------- No Data --------
+        st.markdown("### No Data")
+        st.dataframe(
+            df[df["status"] == "No Data"]
+            [group_cols + ["plate_number"]],
+            width="stretch",
+            height=350
+        )
+    
     # =====================================
     # DAILY ANALYSIS
     # =====================================
