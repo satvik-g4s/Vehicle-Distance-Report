@@ -222,7 +222,7 @@ with tab1:
                     key=f"{prefix}_location"
                 )
 
-st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
         # ---------------- APPLY FILTERS ----------------
         filtered = merged.copy()
 
