@@ -668,30 +668,44 @@ with tab3:
             st.success("Database Updated ✅")
     st.subheader("Vehicle Master Upload")
 
+    st.divider()
+
+
     uploaded_file_vehicles = st.file_uploader(
-        "Upload Vehicle Master (xlsx)",
+        "Upload Vehicle Master (xlsx) - Only to be updated when Vehicles data changed, not to be uploaded otherwise",
         type=["xlsx"]
     )
 
     if uploaded_file_vehicles:
 
-        st.write("Saving Vehicle Master...")
-
-        try:
+        st.warning("⚠ Kindly update Vehicle Master only if data has changed.")
+    
+        confirm_update = st.button("Update Vehicle Master")
+    
+        if confirm_update:
+    
+            st.write("Saving Vehicle Master...")
+    
+            try:
+                supabase.storage.from_("app-data") \
+                    .remove([VEHICLE_FILE_PATH])
+            except:
+                pass
+    
             supabase.storage.from_("app-data") \
-                .remove([VEHICLE_FILE_PATH])
-        except:
-            pass
-
-        supabase.storage.from_("app-data") \
-            .upload(
-                VEHICLE_FILE_PATH,
-                uploaded_file_vehicles.getvalue(),
-                {"content-type":
-                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
-            )
-
-        st.success("Vehicle Master Updated ✅")
+                .upload(
+                    VEHICLE_FILE_PATH,
+                    uploaded_file_vehicles.getvalue(),
+                    {
+                        "content-type":
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    }
+                )
+    
+            # Clear cache so dashboard reloads new file
+            load_vehicle_master.clear()
+    
+            st.success("Vehicle Master Updated Successfully ✅")
 with tab4:            
     st.markdown("""
     ###Yet to be Added
