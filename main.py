@@ -6,7 +6,25 @@ from io import BytesIO
 import io
 st.set_page_config(layout="wide")
 
+st.markdown("""
+<style>
 
+/* Light blue filter container */
+.filter-box {
+    background-color: #e6f2ff;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #cce0ff;
+    margin-bottom: 20px;
+}
+
+/* Keep selectboxes clean white */
+div[data-baseweb="select"] > div {
+    background-color: white !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 def check_password():
 
@@ -170,31 +188,33 @@ with tab1:
 
         # ---------------- FILTER SECTION ----------------
         with st.container(border=True):
-            st.markdown("### 🔎 Filters")
-        
+            st.markdown('<div class="filter-box">', unsafe_allow_html=True)
+
+            st.markdown("### Filters")
+            
             f1, f2, f3, f4 = st.columns(4)
-        
+            
             with f1:
                 hub_filter = st.selectbox(
                     "Hub",
                     ["All"] + sorted(merged["Hub Name"].dropna().unique().tolist()),
                     key=f"{prefix}_hub"
                 )
-        
+            
             with f2:
                 vendor_filter = st.selectbox(
                     "Vendor",
                     ["All"] + sorted(merged["Vendor Name"].dropna().unique().tolist()),
                     key=f"{prefix}_vendor"
                 )
-        
+            
             with f3:
                 client_filter = st.selectbox(
                     "Client",
                     ["All"] + sorted(merged["Client/QRT"].dropna().unique().tolist()),
                     key=f"{prefix}_client"
                 )
-        
+            
             with f4:
                 location_filter = st.selectbox(
                     "Location",
@@ -202,6 +222,7 @@ with tab1:
                     key=f"{prefix}_location"
                 )
 
+st.markdown('</div>', unsafe_allow_html=True)
         # ---------------- APPLY FILTERS ----------------
         filtered = merged.copy()
 
@@ -237,7 +258,7 @@ with tab1:
         # -------- ACTIVE --------
         with c1:
             with st.container(border=True):
-                st.markdown("## 🟢 Active")
+                st.markdown("##Active")
                 st.metric("Count", active)
 
                 st.dataframe(
@@ -252,7 +273,7 @@ with tab1:
         # -------- INACTIVE --------
         with c2:
             with st.container(border=True):
-                st.markdown("## 🔴 Inactive")
+                st.markdown("## Inactive")
                 st.metric("Count", inactive)
 
                 st.dataframe(
@@ -267,7 +288,7 @@ with tab1:
         # -------- NO DATA --------
         with c3:
             with st.container(border=True):
-                st.markdown("## 🟠 No Data")
+                st.markdown("## No Data")
                 st.metric("Count", nodata)
 
                 st.dataframe(
