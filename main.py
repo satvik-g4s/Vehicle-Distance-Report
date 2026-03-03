@@ -431,8 +431,8 @@ with tab1:
     # =====================================
     st.divider()
     st.caption(f"• Dashboard based on GPS data uploaded till {latest_date.strftime('%d-%b-%Y')}")
-    st.caption(f"• Daily Active: > {DAILY_DISTANCE_THRESHOLD} Km")
-    st.caption(f"• Weekly Active: ≥ {WEEKLY_ACTIVE_DAYS} days")
+    st.caption(f"• Daily Active: Distance Travelled ≥ {DAILY_DISTANCE_THRESHOLD} Km")
+    st.caption(f"• Weekly Active: A car is active for {WEEKLY_ACTIVE_DAYS} or more days")
     st.caption("• US Embassy isn't counted")
     
 with tab2:
