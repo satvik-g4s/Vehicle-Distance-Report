@@ -258,7 +258,7 @@ with tab1:
                 st.metric("Count", inactive)
 
                 st.dataframe(
-                    == "Inactive"][
+                    filtered[filtered["status"] == "Inactive"][
                         ["Hub Name", "Location",
                          "Vendor Name", "Client/QRT", "plate_number"]
                     ],
