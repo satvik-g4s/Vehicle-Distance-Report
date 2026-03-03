@@ -249,7 +249,7 @@ with tab1:
         nodata_total = merged[merged["status"] == "No Data"]["plate_number"].nunique()
     
         k1, k2, k3, k4 = st.columns(4)
-        k1.metric("Eligible", total)
+        k1.metric("GPS Available", total)
         k2.metric("Active", active_total)
         k3.metric("Inactive", inactive_total)
         k4.metric("No Data", nodata_total)
@@ -432,11 +432,11 @@ with tab1:
     st.divider()
     st.caption(
         f"""
-        Dashboard based on GPS data uploaded till {latest_date.strftime('%d-%b-%Y')}
-
+        • Dashboard based on GPS data uploaded till {latest_date.strftime('%d-%b-%Y')}
         • Daily Active: > {DAILY_DISTANCE_THRESHOLD} Km  
         • Weekly Active: ≥ {WEEKLY_ACTIVE_DAYS} days  
-        • Monthly Active: ≥ {MONTHLY_ACTIVE_DAYS} days  
+        • US Embassy isnt counted
+        
         """
     )
 with tab2:
