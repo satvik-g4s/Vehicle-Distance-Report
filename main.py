@@ -86,7 +86,8 @@ def fetch_all_gps():
         start += limit
 
     return pd.DataFrame(all_rows)
-
+    
+@st.cache_data
 def load_vehicle_master():
 
     try:
@@ -188,7 +189,7 @@ with tab1:
             st.dataframe(
                 df[df["status"] == "Active"]
                 [group_cols + ["plate_number"]],
-                use_container_width=True,
+               width="stretch",
                 height=300
             )
 
@@ -197,7 +198,7 @@ with tab1:
             st.dataframe(
                 df[df["status"] == "Inactive"]
                 [group_cols + ["plate_number"]],
-                use_container_width=True,
+               width="stretch",
                 height=300
             )
 
@@ -206,7 +207,7 @@ with tab1:
             st.dataframe(
                 df[df["status"] == "No Data"]
                 [group_cols + ["plate_number"]],
-                use_container_width=True,
+               width="stretch",
                 height=300
             )
 
@@ -346,13 +347,13 @@ with tab1:
         col1, col2, col3 = st.columns(3)
 
         col1.subheader("Hub - Location")
-        col1.dataframe(hub, use_container_width=True)
+        col1.dataframe(hub,width="stretch")
 
         col2.subheader("Vendor")
-        col2.dataframe(vendor, use_container_width=True)
+        col2.dataframe(vendor,width="stretch")
 
         col3.subheader("Client/QRT")
-        col3.dataframe(client, use_container_width=True)
+        col3.dataframe(client,width="stretch")
 
         st.divider()
 
@@ -394,13 +395,13 @@ with tab1:
         col1, col2, col3 = st.columns(3)
 
         col1.subheader("Hub - Location")
-        col1.dataframe(hub, use_container_width=True)
+        col1.dataframe(hub,width="stretch")
 
         col2.subheader("Vendor")
-        col2.dataframe(vendor, use_container_width=True)
+        col2.dataframe(vendor,width="stretch")
 
         col3.subheader("Client/QRT")
-        col3.dataframe(client, use_container_width=True)
+        col3.dataframe(client,width="stretch")
 
         st.divider()
 
@@ -442,13 +443,13 @@ with tab1:
         col1, col2, col3 = st.columns(3)
 
         col1.subheader("Hub - Location")
-        col1.dataframe(hub, use_container_width=True)
+        col1.dataframe(hub,width="stretch")
 
         col2.subheader("Vendor")
-        col2.dataframe(vendor, use_container_width=True)
+        col2.dataframe(vendor,width="stretch")
 
         col3.subheader("Client/QRT")
-        col3.dataframe(client, use_container_width=True)
+        col3.dataframe(client,width="stretch")
 
         st.divider()
 
