@@ -430,15 +430,11 @@ with tab1:
     # FOOTER
     # =====================================
     st.divider()
-    st.caption(
-        f"""
-        • Dashboard based on GPS data uploaded till {latest_date.strftime('%d-%b-%Y')}
-        • Daily Active: > {DAILY_DISTANCE_THRESHOLD} Km  
-        • Weekly Active: ≥ {WEEKLY_ACTIVE_DAYS} days  
-        • US Embassy isnt counted
-        
-        """
-    )
+    st.caption(f"• Dashboard based on GPS data uploaded till {latest_date.strftime('%d-%b-%Y')}")
+    st.caption(f"• Daily Active: > {DAILY_DISTANCE_THRESHOLD} Km")
+    st.caption(f"• Weekly Active: ≥ {WEEKLY_ACTIVE_DAYS} days")
+    st.caption("• US Embassy isn't counted")
+    
 with tab2:
     st.write("Fetch Report")
 
@@ -677,6 +673,6 @@ with tab3:
             st.rerun()
 with tab4:            
     st.markdown("""
-    ###Yet to be Added
+    ### Yet to be Added
 
     """)
