@@ -50,7 +50,16 @@ VEHICLE_FILE_PATH = "vehicles/current_vehicles.xlsx"
 
 tab1, tab2, tab3, tab4 = st.tabs(["Dashboard", "Fetch Report", "Update Data", "Guidelines"])
 
-
+def normalize_plate(x):
+    if pd.isna(x):
+        return x
+    return (
+        str(x)
+        .strip()
+        .upper()
+        .replace(" ", "")
+        .replace("-", "")
+    )
 
 
 def fetch_all_gps():
@@ -93,6 +102,7 @@ def load_vehicle_master():
         vehicles = vehicles.rename(
             columns={"Reg. Vehicle Number": "plate_number"}
         )
+        vehicles["plate_number"] = vehicles["plate_number"].apply(normalize_plate)
 
         return vehicles
 
@@ -108,6 +118,7 @@ def load_dashboard_data():
         return None
 
     master["trip_date"] = pd.to_datetime(master["trip_date"])
+    master["plate_number"] = master["plate_number"].apply(normalize_plate)
 
     df = pd.merge(
         vehicles,
@@ -656,7 +667,7 @@ with tab3:
                 subset=["distance", "trip_date"],
                 inplace=True
             )
-
+            upload_df["plate_number"] = upload_df["plate_number"].apply(normalize_plate)
             st.write("Uploading to database...")
 
             supabase.table("gps_distance") \
