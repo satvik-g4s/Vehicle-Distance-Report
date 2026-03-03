@@ -323,7 +323,7 @@ with tab1:
                         ["Hub Name", "Location",
                          "Vendor Name", "Client/QRT", "plate_number"]
                     ],
-                    width="stretch",
+                    width="content",
                     height=280
                 )
     
