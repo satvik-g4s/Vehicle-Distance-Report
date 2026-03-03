@@ -1,4 +1,3 @@
-#Initial Dashboard Draft
 
 import streamlit as st
 import pandas as pd
@@ -160,72 +159,135 @@ with tab1:
     latest_date = df["trip_date"].max()
 
     # =====================================
-    # KPI DISPLAY
+    # PERIOD TABS
     # =====================================
-    def show_kpis(merged):
-
-        total = merged["plate_number"].nunique()
-        active = merged[merged["status"] == "Active"]["plate_number"].nunique()
-        inactive = merged[merged["status"] == "Inactive"]["plate_number"].nunique()
-        nodata = merged[merged["status"] == "No Data"]["plate_number"].nunique()
-
-        c1, c2, c3, c4 = st.columns(4)
-
-        c1.metric("Eligible GPS Vehicles", total)
-        c2.metric("Active", active)
-        c3.metric("Inactive", inactive)
-        c4.metric("No Data Received", nodata)
-
+    dtab, wtab, mtab = st.tabs(["Daily", "Weekly", "Monthly"])
 
     # =====================================
-    # DETAILED STATUS TABLES
+    # STATUS PANEL FUNCTION
     # =====================================
-    def show_status_tables(df, group_cols, title):
+    def show_dashboard(merged):
 
-        st.subheader(title)
-    
-        # -------- Active --------
-        st.markdown("### Active")
-        st.dataframe(
-            df[df["status"] == "Active"]
-            [group_cols + ["plate_number"]],
-            width="stretch",
-            height=350
-        )
-    
-        # -------- Inactive --------
-        st.markdown("### Inactive")
-        st.dataframe(
-            df[df["status"] == "Inactive"]
-            [group_cols + ["plate_number"]],
-            width="stretch",
-            height=350
-        )
-    
-        # -------- No Data --------
-        st.markdown("### No Data")
-        st.dataframe(
-            df[df["status"] == "No Data"]
-            [group_cols + ["plate_number"]],
-            width="stretch",
-            height=350
-        )
-    
+        # ---------------- FILTER SECTION ----------------
+        with st.container(border=True):
+            st.markdown("### 🔎 Filters")
+
+            f1, f2, f3, f4 = st.columns(4)
+
+            with f1:
+                hub_filter = st.selectbox(
+                    "Hub",
+                    ["All"] + sorted(merged["Hub Name"].dropna().unique().tolist())
+                )
+
+            with f2:
+                vendor_filter = st.selectbox(
+                    "Vendor",
+                    ["All"] + sorted(merged["Vendor Name"].dropna().unique().tolist())
+                )
+
+            with f3:
+                client_filter = st.selectbox(
+                    "Client",
+                    ["All"] + sorted(merged["Client/QRT"].dropna().unique().tolist())
+                )
+
+            with f4:
+                location_filter = st.selectbox(
+                    "Location",
+                    ["All"] + sorted(merged["Location"].dropna().unique().tolist())
+                )
+
+        # ---------------- APPLY FILTERS ----------------
+        filtered = merged.copy()
+
+        if hub_filter != "All":
+            filtered = filtered[filtered["Hub Name"] == hub_filter]
+
+        if vendor_filter != "All":
+            filtered = filtered[filtered["Vendor Name"] == vendor_filter]
+
+        if client_filter != "All":
+            filtered = filtered[filtered["Client/QRT"] == client_filter]
+
+        if location_filter != "All":
+            filtered = filtered[filtered["Location"] == location_filter]
+
+        # ---------------- KPI ROW ----------------
+        total = filtered["plate_number"].nunique()
+        active = filtered[filtered["status"] == "Active"]["plate_number"].nunique()
+        inactive = filtered[filtered["status"] == "Inactive"]["plate_number"].nunique()
+        nodata = filtered[filtered["status"] == "No Data"]["plate_number"].nunique()
+
+        k1, k2, k3, k4 = st.columns(4)
+        k1.metric("Eligible", total)
+        k2.metric("Active", active)
+        k3.metric("Inactive", inactive)
+        k4.metric("No Data", nodata)
+
+        st.divider()
+
+        # ---------------- STATUS PANELS ----------------
+        c1, c2, c3 = st.columns(3)
+
+        # -------- ACTIVE --------
+        with c1:
+            with st.container(border=True):
+                st.markdown("## 🟢 Active")
+                st.metric("Count", active)
+
+                st.dataframe(
+                    filtered[filtered["status"] == "Active"][
+                        ["plate_number", "Hub Name", "Location",
+                         "Vendor Name", "Client/QRT"]
+                    ],
+                    width="stretch",
+                    height=350
+                )
+
+        # -------- INACTIVE --------
+        with c2:
+            with st.container(border=True):
+                st.markdown("## 🔴 Inactive")
+                st.metric("Count", inactive)
+
+                st.dataframe(
+                    filtered[filtered["status"] == "Inactive"][
+                        ["plate_number", "Hub Name", "Location",
+                         "Vendor Name", "Client/QRT"]
+                    ],
+                    width="stretch",
+                    height=350
+                )
+
+        # -------- NO DATA --------
+        with c3:
+            with st.container(border=True):
+                st.markdown("## 🟠 No Data")
+                st.metric("Count", nodata)
+
+                st.dataframe(
+                    filtered[filtered["status"] == "No Data"][
+                        ["plate_number", "Hub Name", "Location",
+                         "Vendor Name", "Client/QRT"]
+                    ],
+                    width="stretch",
+                    height=350
+                )
+
     # =====================================
-    # DAILY ANALYSIS
+    # DAILY
     # =====================================
-    def analyse_daily(data, full_df):
+    with dtab:
 
-        gps_master = (
-            full_df[
-                ["plate_number","Hub Name","Location",
-                 "Vendor Name","Client/QRT"]
-            ]
-            .drop_duplicates()
-        )
+        daily = df[df["trip_date"] == latest_date].copy()
 
-        received = data.copy()
+        gps_master = df[
+            ["plate_number","Hub Name","Location",
+             "Vendor Name","Client/QRT"]
+        ].drop_duplicates()
 
+        received = daily.copy()
         received["status"] = "Inactive"
         received.loc[
             received["distance"] >= DAILY_DISTANCE_THRESHOLD,
@@ -240,175 +302,100 @@ with tab1:
 
         merged["status"] = merged["status"].fillna("No Data")
 
-        def summary(cols):
-            if isinstance(cols,str):
-                cols=[cols]
-
-            return (
-                merged.groupby(cols+["status"])
-                ["plate_number"]
-                .nunique()
-                .unstack(fill_value=0)
-                .reset_index()
-            )
-
-        return (
-            summary(["Hub Name","Location"]),
-            summary("Vendor Name"),
-            summary("Client/QRT"),
-            merged
-        )
+        show_dashboard(merged)
 
     # =====================================
-    # WEEKLY / MONTHLY ANALYSIS
+    # WEEKLY
     # =====================================
-    def analyse_period(data, full_df, required_days):
+    with wtab:
 
-        gps_master = (
-            full_df[
-                ["plate_number","Hub Name","Location",
-                 "Vendor Name","Client/QRT"]
-            ]
-            .drop_duplicates()
+        week_start = latest_date - pd.Timedelta(days=6)
+
+        weekly = df[
+            df["trip_date"].between(week_start, latest_date)
+        ].copy()
+
+        gps_master = df[
+            ["plate_number","Hub Name","Location",
+             "Vendor Name","Client/QRT"]
+        ].drop_duplicates()
+
+        weekly["active_flag"] = weekly["distance"] >= DAILY_DISTANCE_THRESHOLD
+
+        active_days = (
+            weekly.groupby("plate_number")["active_flag"]
+            .sum()
+            .reset_index()
         )
 
-        if not data.empty:
-
-            data = data.copy()
-
-            data["active_flag"] = (
-                data["distance"] >= DAILY_DISTANCE_THRESHOLD
-            )
-
-            active_days = (
-                data.groupby("plate_number")["active_flag"]
-                .sum()
-                .reset_index()
-            )
-
-            active_days["status"] = "Inactive"
-            active_days.loc[
-                active_days["active_flag"] >= required_days,
-                "status"
-            ] = "Active"
-
-        else:
-            active_days = pd.DataFrame(
-                columns=["plate_number","status"]
-            )
+        active_days["status"] = "Inactive"
+        active_days.loc[
+            active_days["active_flag"] >= WEEKLY_ACTIVE_DAYS,
+            "status"
+        ] = "Active"
 
         merged = gps_master.merge(
-            active_days,
+            active_days[["plate_number","status"]],
             on="plate_number",
             how="left"
         )
 
         merged["status"] = merged["status"].fillna("No Data")
 
-        def summary(cols):
-            if isinstance(cols,str):
-                cols=[cols]
-
-            return (
-                merged.groupby(cols+["status"])
-                ["plate_number"]
-                .nunique()
-                .unstack(fill_value=0)
-                .reset_index()
-            )
-
-        return (
-            summary(["Hub Name","Location"]),
-            summary("Vendor Name"),
-            summary("Client/QRT"),
-            merged
-        )
+        show_dashboard(merged)
 
     # =====================================
-    # PERIOD TABS
+    # MONTHLY
     # =====================================
-    dtab, wtab= st.tabs(
-        ["Daily","Weekly"]
-    )
+    with mtab:
 
-    # ---------- DAILY ----------
-    with dtab:
+        month_start = latest_date.replace(day=1)
 
-        daily = df[df["trip_date"] == latest_date]
+        monthly = df[
+            df["trip_date"].between(month_start, latest_date)
+        ].copy()
 
-        hub,vendor,client,merged = analyse_daily(
-            daily, df
+        gps_master = df[
+            ["plate_number","Hub Name","Location",
+             "Vendor Name","Client/QRT"]
+        ].drop_duplicates()
+
+        monthly["active_flag"] = monthly["distance"] >= DAILY_DISTANCE_THRESHOLD
+
+        active_days = (
+            monthly.groupby("plate_number")["active_flag"]
+            .sum()
+            .reset_index()
         )
 
-        show_kpis(merged)
+        active_days["status"] = "Inactive"
+        active_days.loc[
+            active_days["active_flag"] >= MONTHLY_ACTIVE_DAYS,
+            "status"
+        ] = "Active"
 
-        col1, col2, col3 = st.columns(3)
-
-        col1.subheader("Hub - Location")
-        col1.dataframe(hub,width="stretch")
-
-        col2.subheader("Vendor")
-        col2.dataframe(vendor,width="stretch")
-
-        col3.subheader("Client/QRT")
-        col3.dataframe(client,width="stretch")
-
-        st.divider()
-
-        show_status_tables(
-            merged,
-            ["Hub Name","Location", "Vendor Name", "Client/QRT"],
-            " Vehicles by Hub & Location"
+        merged = gps_master.merge(
+            active_days[["plate_number","status"]],
+            on="plate_number",
+            how="left"
         )
 
-    # ---------- WEEKLY ----------
-    with wtab:
+        merged["status"] = merged["status"].fillna("No Data")
 
-        week_start = latest_date - pd.Timedelta(days=6)
-
-        weekly = df[
-            df["trip_date"].between(
-                week_start,latest_date
-            )
-        ]
-
-        hub,vendor,client,merged = analyse_period(
-            weekly,df,WEEKLY_ACTIVE_DAYS
-        )
-
-        show_kpis(merged)
-
-        col1, col2, col3 = st.columns(3)
-
-        col1.subheader("Hub - Location")
-        col1.dataframe(hub,width="stretch")
-
-        col2.subheader("Vendor")
-        col2.dataframe(vendor,width="stretch")
-
-        col3.subheader("Client/QRT")
-        col3.dataframe(client,width="stretch")
-
-        st.divider()
-
-        show_status_tables(
-            merged,
-            ["Hub Name","Location", "Vendor Name", "Client/QRT"],
-            " Vehicles by Hub & Location"
-        )
-
+        show_dashboard(merged)
 
     # =====================================
     # FOOTER
     # =====================================
     st.divider()
     st.caption(
-    f"""
-    Dashboard based on GPS data uploaded till {latest_date.strftime('%d-%b-%Y')}
-    
-    • A car is considered **Active (Daily)** if distance travelled is more than {DAILY_DISTANCE_THRESHOLD} Km per day.  
-    • A car is considered **Active (Weekly)** if it was active for {WEEKLY_ACTIVE_DAYS} or more days in the last 7 days.  
-    """
+        f"""
+        Dashboard based on GPS data uploaded till {latest_date.strftime('%d-%b-%Y')}
+
+        • Daily Active: > {DAILY_DISTANCE_THRESHOLD} Km  
+        • Weekly Active: ≥ {WEEKLY_ACTIVE_DAYS} days  
+        • Monthly Active: ≥ {MONTHLY_ACTIVE_DAYS} days  
+        """
     )
 with tab2:
     st.write("Fetch Report")
