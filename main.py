@@ -466,6 +466,7 @@ with tab1:
     st.caption(
         f"Dashboard based on GPS data uploaded till "
         f"{latest_date.strftime('%d-%b-%Y')}"
+        f"> A Car is Active if its distance has travelled more than {DAILY_DISTANCE_THRESHOLD}Km per day \n> Weekly a car is considered active if it was active for {WEEKLY_ACTIVE_DAYS} or more \n> Monthly a car is considered active if it was active for {MONTHLY_ACTIVE_DAYS} or more"
     )
 with tab2:
     st.write("Fetch Report")
@@ -689,6 +690,6 @@ with tab3:
         st.success("Vehicle Master Updated ✅")
 with tab4:            
     st.markdown("""
-    ### Yet to be Updated
+    ###Yet to be Added
 
     """)
