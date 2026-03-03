@@ -7,3 +7,4 @@ textColor="#31333f"
 secondaryBackgroundColor="#c1d3f5" 
 # Ensure borders are visible
 dataframeBorderColor="#575b78"
+widgetBorderColor="#575b78"
