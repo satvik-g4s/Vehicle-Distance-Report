@@ -324,7 +324,7 @@ with tab1:
                          "Vendor Name", "Client/QRT", "plate_number"]
                     ],
                     width="stretch",
-                    height=300
+                    height=280
                 )
     
         # -------- INACTIVE --------
@@ -338,7 +338,7 @@ with tab1:
                          "Vendor Name", "Client/QRT", "plate_number"]
                     ],
                     width="stretch",
-                    height=300
+                    height=280
                 )
     
         # -------- NO DATA --------
@@ -352,7 +352,7 @@ with tab1:
                          "Vendor Name", "Client/QRT", "plate_number"]
                     ],
                     width="stretch",
-                    height=300
+                    height=280
                 )
 
     # =====================================
