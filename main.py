@@ -161,41 +161,45 @@ with tab1:
     # =====================================
     # PERIOD TABS
     # =====================================
-    dtab, wtab, mtab = st.tabs(["Daily", "Weekly", "Monthly"])
+    dtab, wtab= st.tabs(["Daily", "Weekly"])
 
     # =====================================
     # STATUS PANEL FUNCTION
     # =====================================
-    def show_dashboard(merged):
+    def show_dashboard(merged, prefix):
 
         # ---------------- FILTER SECTION ----------------
         with st.container(border=True):
             st.markdown("### 🔎 Filters")
-
+        
             f1, f2, f3, f4 = st.columns(4)
-
+        
             with f1:
                 hub_filter = st.selectbox(
                     "Hub",
-                    ["All"] + sorted(merged["Hub Name"].dropna().unique().tolist())
+                    ["All"] + sorted(merged["Hub Name"].dropna().unique().tolist()),
+                    key=f"{prefix}_hub"
                 )
-
+        
             with f2:
                 vendor_filter = st.selectbox(
                     "Vendor",
-                    ["All"] + sorted(merged["Vendor Name"].dropna().unique().tolist())
+                    ["All"] + sorted(merged["Vendor Name"].dropna().unique().tolist()),
+                    key=f"{prefix}_vendor"
                 )
-
+        
             with f3:
                 client_filter = st.selectbox(
                     "Client",
-                    ["All"] + sorted(merged["Client/QRT"].dropna().unique().tolist())
+                    ["All"] + sorted(merged["Client/QRT"].dropna().unique().tolist()),
+                    key=f"{prefix}_client"
                 )
-
+        
             with f4:
                 location_filter = st.selectbox(
                     "Location",
-                    ["All"] + sorted(merged["Location"].dropna().unique().tolist())
+                    ["All"] + sorted(merged["Location"].dropna().unique().tolist()),
+                    key=f"{prefix}_location"
                 )
 
         # ---------------- APPLY FILTERS ----------------
@@ -302,7 +306,7 @@ with tab1:
 
         merged["status"] = merged["status"].fillna("No Data")
 
-        show_dashboard(merged)
+        show_dashboard(merged, "daily")
 
     # =====================================
     # WEEKLY
@@ -342,47 +346,9 @@ with tab1:
 
         merged["status"] = merged["status"].fillna("No Data")
 
-        show_dashboard(merged)
+        show_dashboard(merged, "weekly")
 
-    # =====================================
-    # MONTHLY
-    # =====================================
-    with mtab:
 
-        month_start = latest_date.replace(day=1)
-
-        monthly = df[
-            df["trip_date"].between(month_start, latest_date)
-        ].copy()
-
-        gps_master = df[
-            ["plate_number","Hub Name","Location",
-             "Vendor Name","Client/QRT"]
-        ].drop_duplicates()
-
-        monthly["active_flag"] = monthly["distance"] >= DAILY_DISTANCE_THRESHOLD
-
-        active_days = (
-            monthly.groupby("plate_number")["active_flag"]
-            .sum()
-            .reset_index()
-        )
-
-        active_days["status"] = "Inactive"
-        active_days.loc[
-            active_days["active_flag"] >= MONTHLY_ACTIVE_DAYS,
-            "status"
-        ] = "Active"
-
-        merged = gps_master.merge(
-            active_days[["plate_number","status"]],
-            on="plate_number",
-            how="left"
-        )
-
-        merged["status"] = merged["status"].fillna("No Data")
-
-        show_dashboard(merged)
 
     # =====================================
     # FOOTER
