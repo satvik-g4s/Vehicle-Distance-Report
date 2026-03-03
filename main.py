@@ -218,7 +218,7 @@ with tab1:
 
         received["status"] = "Inactive"
         received.loc[
-            received["distance"] > DAILY_DISTANCE_THRESHOLD,
+            received["distance"] >= DAILY_DISTANCE_THRESHOLD,
             "status"
         ] = "Active"
 
@@ -267,7 +267,7 @@ with tab1:
             data = data.copy()
 
             data["active_flag"] = (
-                data["distance"] > DAILY_DISTANCE_THRESHOLD
+                data["distance"] >= DAILY_DISTANCE_THRESHOLD
             )
 
             active_days = (
@@ -466,8 +466,10 @@ with tab1:
     st.caption(
         f"Dashboard based on GPS data uploaded till "
         f"{latest_date.strftime('%d-%b-%Y')}"
-        f"> A Car is Active if its distance has travelled more than {DAILY_DISTANCE_THRESHOLD}Km per day \n> Weekly a car is considered active if it was active for {WEEKLY_ACTIVE_DAYS} or more \n> Monthly a car is considered active if it was active for {MONTHLY_ACTIVE_DAYS} or more"
     )
+    st.caption(f"> A Car is Active if its distance has travelled more than {DAILY_DISTANCE_THRESHOLD}Km per day")
+    st.caption(f"> Weekly a car is considered active if it was active for {WEEKLY_ACTIVE_DAYS} or more")
+    st.caption(f"> Monthly a car is considered active if it was active for {MONTHLY_ACTIVE_DAYS} or more")
 with tab2:
     st.write("Fetch Report")
 
