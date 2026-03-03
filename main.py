@@ -215,7 +215,7 @@ with tab1:
     # =====================================
     DAILY_DISTANCE_THRESHOLD = 5
     WEEKLY_ACTIVE_DAYS = 4
-    MONTHLY_ACTIVE_DAYS = 15
+    MONTHLY_ACTIVE_DAYS = 20   # Updated as requested
 
     df = load_dashboard_data()
 
@@ -236,124 +236,121 @@ with tab1:
     # =====================================
     # PERIOD TABS
     # =====================================
-    dtab, wtab= st.tabs(["Daily", "Weekly"])
+    dtab, wtab, mtab = st.tabs(["Daily", "Weekly", "Monthly"])
 
     # =====================================
     # STATUS PANEL FUNCTION
     # =====================================
     def show_dashboard(merged, prefix):
-    
-        # ---------------- OVERALL KPI (UNFILTERED) ----------------
+
+        # ---------------- OVERALL KPI ----------------
         total = merged["plate_number"].nunique()
         active_total = merged[merged["status"] == "Active"]["plate_number"].nunique()
         inactive_total = merged[merged["status"] == "Inactive"]["plate_number"].nunique()
         nodata_total = merged[merged["status"] == "No Data"]["plate_number"].nunique()
-    
+
         k1, k2, k3, k4 = st.columns(4)
         k1.metric("GPS Available", total)
         k2.metric("Active", active_total)
         k3.metric("Inactive", inactive_total)
         k4.metric("No Data", nodata_total)
-    
+
         st.divider()
-    
-        # ---------------- FILTER SECTION ----------------
+
+        # ---------------- FILTERS ----------------
         with st.container(border=True):
-    
+
             st.markdown("### Filters")
-    
+
             f1, f2, f3, f4 = st.columns(4)
-    
+
             with f1:
                 hub_filter = st.selectbox(
                     "Hub",
                     ["All"] + sorted(merged["Hub Name"].dropna().unique().tolist()),
                     key=f"{prefix}_hub"
                 )
-    
+
             with f2:
                 location_filter = st.selectbox(
                     "Location",
                     ["All"] + sorted(merged["Location"].dropna().unique().tolist()),
                     key=f"{prefix}_location"
                 )
-    
+
             with f3:
                 client_filter = st.selectbox(
                     "Client",
                     ["All"] + sorted(merged["Client/QRT"].dropna().unique().tolist()),
                     key=f"{prefix}_client"
                 )
-    
+
             with f4:
                 vendor_filter = st.selectbox(
                     "Vendor",
                     ["All"] + sorted(merged["Vendor Name"].dropna().unique().tolist()),
                     key=f"{prefix}_vendor"
                 )
-    
+
         # ---------------- APPLY FILTERS ----------------
         filtered = merged.copy()
-    
+
         if hub_filter != "All":
             filtered = filtered[filtered["Hub Name"] == hub_filter]
-    
+
         if vendor_filter != "All":
             filtered = filtered[filtered["Vendor Name"] == vendor_filter]
-    
+
         if client_filter != "All":
             filtered = filtered[filtered["Client/QRT"] == client_filter]
-    
+
         if location_filter != "All":
             filtered = filtered[filtered["Location"] == location_filter]
-        
-        # ---------------- STATUS PANELS (FILTERED) ----------------
+
+        # ---------------- STATUS PANELS ----------------
         active = filtered[filtered["status"] == "Active"]
         inactive = filtered[filtered["status"] == "Inactive"]
         nodata = filtered[filtered["status"] == "No Data"]
-    
+
         c1, c2, c3 = st.columns(3)
-    
-        # -------- ACTIVE --------
+
         with c1:
             with st.container(border=True):
-                st.metric("## Active", active["plate_number"].nunique())
-    
+                st.metric("Active", active["plate_number"].nunique())
                 st.dataframe(
                     active[
                         ["Hub Name", "Location",
                          "Vendor Name", "Client/QRT", "plate_number"]
-                    ].reset_index(drop=True),
+                    ],
                     width="stretch",
-                    height=280
+                    height=280,
+                    hide_index=True
                 )
-    
-        # -------- INACTIVE --------
+
         with c2:
             with st.container(border=True):
-                st.metric("## Inactive", inactive["plate_number"].nunique())
-    
+                st.metric("Inactive", inactive["plate_number"].nunique())
                 st.dataframe(
                     inactive[
                         ["Hub Name", "Location",
                          "Vendor Name", "Client/QRT", "plate_number"]
-                    ].reset_index(drop=True),
+                    ],
                     width="stretch",
-                    height=280
+                    height=280,
+                    hide_index=True
                 )
-    
-        # -------- NO DATA --------
+
         with c3:
             with st.container(border=True):
-                st.metric("## No Data", nodata["plate_number"].nunique())
-    
+                st.metric("No Data", nodata["plate_number"].nunique())
                 st.dataframe(
                     nodata[
                         ["Hub Name", "Location",
                          "Vendor Name", "Client/QRT", "plate_number"]
-                    ].reset_index(drop=True),
+                    ],
                     width="stretch",
-                    height=280
+                    height=280,
+                    hide_index=True
                 )
 
     # =====================================
@@ -386,14 +383,15 @@ with tab1:
         show_dashboard(merged, "daily")
 
     # =====================================
-    # WEEKLY
+    # WEEKLY (From Monday)
     # =====================================
     with wtab:
 
-        week_start = latest_date - pd.Timedelta(days=6)
+        week_start = latest_date - pd.Timedelta(days=latest_date.weekday())
+        week_end = week_start + pd.Timedelta(days=6)
 
         weekly = df[
-            df["trip_date"].between(week_start, latest_date)
+            df["trip_date"].between(week_start, week_end)
         ].copy()
 
         gps_master = df[
@@ -425,16 +423,55 @@ with tab1:
 
         show_dashboard(merged, "weekly")
 
+    # =====================================
+    # MONTHLY (From 1st of Month)
+    # =====================================
+    with mtab:
 
+        month_start = latest_date.replace(day=1)
+
+        monthly = df[
+            df["trip_date"].between(month_start, latest_date)
+        ].copy()
+
+        gps_master = df[
+            ["plate_number","Hub Name","Location",
+             "Vendor Name","Client/QRT"]
+        ].drop_duplicates()
+
+        monthly["active_flag"] = monthly["distance"] >= DAILY_DISTANCE_THRESHOLD
+
+        active_days = (
+            monthly.groupby("plate_number")["active_flag"]
+            .sum()
+            .reset_index()
+        )
+
+        active_days["status"] = "Inactive"
+        active_days.loc[
+            active_days["active_flag"] >= MONTHLY_ACTIVE_DAYS,
+            "status"
+        ] = "Active"
+
+        merged = gps_master.merge(
+            active_days[["plate_number","status"]],
+            on="plate_number",
+            how="left"
+        )
+
+        merged["status"] = merged["status"].fillna("No Data")
+
+        show_dashboard(merged, "monthly")
 
     # =====================================
     # FOOTER
     # =====================================
     st.divider()
-    st.caption(f"• Dashboard based on GPS data uploaded till {latest_date.strftime('%d-%b-%Y')}")
-    st.caption(f"• Daily Active: Distance Travelled ≥ {DAILY_DISTANCE_THRESHOLD} Km")
-    st.caption(f"• Weekly Active: A car is active for {WEEKLY_ACTIVE_DAYS} or more days")
-    st.caption("• US Embassy isn't counted")
+    st.caption(f"• Data till {latest_date.strftime('%d-%b-%Y')}")
+    st.caption(f"• Daily Active ≥ {DAILY_DISTANCE_THRESHOLD} Km")
+    st.caption(f"• Weekly Active ≥ {WEEKLY_ACTIVE_DAYS} days (Mon–Sun)")
+    st.caption(f"• Monthly Active ≥ {MONTHLY_ACTIVE_DAYS} days (from 1st)")
+    st.caption("• US Embassy excluded")
     
 with tab2:
     st.write("Fetch Report")
