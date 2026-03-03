@@ -464,12 +464,14 @@ with tab1:
     # =====================================
     st.divider()
     st.caption(
-        f"Dashboard based on GPS data uploaded till "
-        f"{latest_date.strftime('%d-%b-%Y')}"
+    f"""
+    Dashboard based on GPS data uploaded till {latest_date.strftime('%d-%b-%Y')}
+    
+    • A car is considered **Active (Daily)** if distance travelled is more than {DAILY_DISTANCE_THRESHOLD} Km per day.  
+    • A car is considered **Active (Weekly)** if it was active for {WEEKLY_ACTIVE_DAYS} or more days in the last 7 days.  
+    • A car is considered **Active (Monthly)** if it was active for {MONTHLY_ACTIVE_DAYS} or more days in the current month.
+    """
     )
-    st.caption(f"> A Car is Active if its distance has travelled more than {DAILY_DISTANCE_THRESHOLD}Km per day")
-    st.caption(f"> Weekly a car is considered active if it was active for {WEEKLY_ACTIVE_DAYS} or more")
-    st.caption(f"> Monthly a car is considered active if it was active for {MONTHLY_ACTIVE_DAYS} or more")
 with tab2:
     st.write("Fetch Report")
 
