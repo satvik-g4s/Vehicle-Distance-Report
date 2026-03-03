@@ -168,17 +168,17 @@ with tab1:
     # =====================================
     def show_dashboard(merged, prefix):
     
-        # ---------------- DEFAULT (NO FILTER) KPI ----------------
+        # ---------------- OVERALL KPI (UNFILTERED) ----------------
         total = merged["plate_number"].nunique()
-        active = merged[merged["status"] == "Active"]["plate_number"].nunique()
-        inactive = merged[merged["status"] == "Inactive"]["plate_number"].nunique()
-        nodata = merged[merged["status"] == "No Data"]["plate_number"].nunique()
+        active_total = merged[merged["status"] == "Active"]["plate_number"].nunique()
+        inactive_total = merged[merged["status"] == "Inactive"]["plate_number"].nunique()
+        nodata_total = merged[merged["status"] == "No Data"]["plate_number"].nunique()
     
         k1, k2, k3, k4 = st.columns(4)
         k1.metric("Eligible", total)
-        k2.metric("Active", active)
-        k3.metric("Inactive", inactive)
-        k4.metric("No Data", nodata)
+        k2.metric("Active", active_total)
+        k3.metric("Inactive", inactive_total)
+        k4.metric("No Data", nodata_total)
     
         st.divider()
     
@@ -232,128 +232,53 @@ with tab1:
         if location_filter != "All":
             filtered = filtered[filtered["Location"] == location_filter]
     
-        # ---------------- FILTERED KPI (Optional Upgrade) ----------------
-        total = filtered["plate_number"].nunique()
-        active = filtered[filtered["status"] == "Active"]["plate_number"].nunique()
-        inactive = filtered[filtered["status"] == "Inactive"]["plate_number"].nunique()
-        nodata = filtered[filtered["status"] == "No Data"]["plate_number"].nunique()
-    
-        st.markdown("### Filtered Summary")
-    
-        f1, f2, f3, f4 = st.columns(4)
-        f1.metric("Eligible", total)
-        f2.metric("Active", active)
-        f3.metric("Inactive", inactive)
-        f4.metric("No Data", nodata)
-    
         st.divider()
     
-        # ---------------- STATUS PANELS ----------------
+        # ---------------- STATUS PANELS (FILTERED) ----------------
+        active = filtered[filtered["status"] == "Active"]
+        inactive = filtered[filtered["status"] == "Inactive"]
+        nodata = filtered[filtered["status"] == "No Data"]
+    
         c1, c2, c3 = st.columns(3)
     
-        with c1:
-            with st.container(border=True):
-                st.markdown("## Active")
-                st.dataframe(
-                    filtered[filtered["status"] == "Active"][
-                        ["Hub Name", "Location", "Vendor Name", "Client/QRT", "plate_number"]
-                    ],
-                    width="stretch",
-                    height=350
-                )
-    
-        with c2:
-            with st.container(border=True):
-                st.markdown("## Inactive")
-                st.dataframe(
-                    filtered[filtered["status"] == "Inactive"][
-                        ["Hub Name", "Location", "Vendor Name", "Client/QRT", "plate_number"]
-                    ],
-                    width="stretch",
-                    height=350
-                )
-    
-        with c3:
-            with st.container(border=True):
-                st.markdown("## No Data")
-                st.dataframe(
-                    filtered[filtered["status"] == "No Data"][
-                        ["Hub Name", "Location", "Vendor Name", "Client/QRT", "plate_number"]
-                    ],
-                    width="stretch",
-                    height=350
-                )    
-
-        # ---------------- APPLY FILTERS ----------------
-        filtered = merged.copy()
-
-        if hub_filter != "All":
-            filtered = filtered[filtered["Hub Name"] == hub_filter]
-
-        if vendor_filter != "All":
-            filtered = filtered[filtered["Vendor Name"] == vendor_filter]
-
-        if client_filter != "All":
-            filtered = filtered[filtered["Client/QRT"] == client_filter]
-
-        if location_filter != "All":
-            filtered = filtered[filtered["Location"] == location_filter]
-
-        # ---------------- KPI ROW ----------------
-        total = filtered["plate_number"].nunique()
-        active = filtered[filtered["status"] == "Active"]["plate_number"].nunique()
-        inactive = filtered[filtered["status"] == "Inactive"]["plate_number"].nunique()
-        nodata = filtered[filtered["status"] == "No Data"]["plate_number"].nunique()
-
-        k1, k2, k3, k4 = st.columns(4)
-        k1.metric("Eligible", total)
-        k2.metric("Active", active)
-        k3.metric("Inactive", inactive)
-        k4.metric("No Data", nodata)
-
-        st.divider()
-
-        # ---------------- STATUS PANELS ----------------
-        c1, c2, c3 = st.columns(3)
-
         # -------- ACTIVE --------
         with c1:
             with st.container(border=True):
-                st.markdown("## Active")
-                st.metric("Count", active)
-
+                st.markdown("## 🟢 Active")
+                st.metric("Count", active["plate_number"].nunique())
+    
                 st.dataframe(
-                    filtered[filtered["status"] == "Active"][
+                    active[
                         ["Hub Name", "Location",
                          "Vendor Name", "Client/QRT", "plate_number"]
                     ],
                     width="stretch",
                     height=350
                 )
-
+    
         # -------- INACTIVE --------
         with c2:
             with st.container(border=True):
-                st.markdown("## Inactive")
-                st.metric("Count", inactive)
-
+                st.markdown("## 🔴 Inactive")
+                st.metric("Count", inactive["plate_number"].nunique())
+    
                 st.dataframe(
-                    filtered[filtered["status"] == "Inactive"][
+                    inactive[
                         ["Hub Name", "Location",
                          "Vendor Name", "Client/QRT", "plate_number"]
                     ],
                     width="stretch",
                     height=350
                 )
-
+    
         # -------- NO DATA --------
         with c3:
             with st.container(border=True):
-                st.markdown("## No Data")
-                st.metric("Count", nodata)
-
+                st.markdown("## 🟠 No Data")
+                st.metric("Count", nodata["plate_number"].nunique())
+    
                 st.dataframe(
-                    filtered[filtered["status"] == "No Data"][
+                    nodata[
                         ["Hub Name", "Location",
                          "Vendor Name", "Client/QRT", "plate_number"]
                     ],
