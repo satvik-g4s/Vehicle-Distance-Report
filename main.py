@@ -3,84 +3,109 @@ import pandas as pd
 from supabase import create_client
 from io import BytesIO
 import io
-
 st.set_page_config(layout="wide")
 
-# =====================================
-# ADD COLOR STYLING (UI enhancement only)
-# =====================================
+# ==============================
+# UI COLOR ENHANCEMENT (ONLY STYLING ADDED)
+# ==============================
 st.markdown("""
 <style>
-    /* Main app background */
-    .stApp {
-        background-color: #f8f9fa;
-    }
-    /* Headers */
-    h1, h2, h3, h4, h5, h6 {
-        color: #2c3e50;
-    }
-    /* Tabs */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 2px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background-color: #e9ecef;
-        border-radius: 4px 4px 0 0;
-        padding: 10px 20px;
-        color: #495057;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #1f77b4;
-        color: white;
-    }
-    /* Buttons */
-    .stButton button {
-        background-color: #1f77b4;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        padding: 0.5rem 1rem;
-        font-weight: 500;
-    }
-    .stButton button:hover {
-        background-color: #135a8f;
-        color: white;
-        border: none;
-    }
-    /* Metrics */
-    [data-testid="stMetricValue"] {
-        color: #1f77b4;
-        font-weight: 600;
-    }
-    [data-testid="stMetricLabel"] {
-        color: #6c757d;
-    }
-    /* Dataframes */
-    .stDataFrame thead tr th {
-        background-color: #1f77b4;
-        color: white;
-        font-weight: 500;
-    }
-    .stDataFrame tbody tr:nth-child(even) {
-        background-color: #f2f2f2;
-    }
-    /* Containers with border */
-    .stContainer [data-testid="stContainer"] {
-        border: 1px solid #dee2e6;
-        border-radius: 5px;
-        padding: 1rem;
-        background-color: white;
-    }
-    /* Dividers */
-    hr {
-        border-color: #dee2e6;
-    }
-    /* Alert boxes */
-    .stAlert {
-        border-radius: 4px;
-    }
+
+/* Main app background */
+.stApp {
+    background-color: #f4f6f9;
+}
+
+/* Main title */
+h1 {
+    color: #1f3b73;
+    font-weight: 700;
+}
+
+/* Section headers */
+h2, h3 {
+    color: #243b55;
+}
+
+/* Tabs */
+button[data-baseweb="tab"] {
+    background-color: #e9eef5;
+    color: #1f3b73;
+    font-weight: 600;
+}
+button[data-baseweb="tab"][aria-selected="true"] {
+    background-color: #1f3b73;
+    color: white;
+}
+
+/* KPI metric cards */
+div[data-testid="metric-container"] {
+    background-color: white;
+    border-radius: 10px;
+    padding: 15px;
+    border: 1px solid #e0e6ed;
+}
+
+/* Buttons */
+.stButton > button {
+    background-color: #1f3b73;
+    color: white;
+    border-radius: 6px;
+    border: none;
+}
+.stButton > button:hover {
+    background-color: #162a52;
+    color: white;
+}
+
+/* Select boxes */
+div[data-baseweb="select"] > div {
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid #d0d7e2;
+}
+
+/* Dataframes */
+div[data-testid="stDataFrame"] {
+    border-radius: 8px;
+    border: 1px solid #dce3ec;
+}
+
+/* File uploader */
+section[data-testid="stFileUploader"] {
+    background-color: white;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #dce3ec;
+}
+
+/* Divider */
+hr {
+    border: 1px solid #e2e8f0;
+}
+
+/* Success */
+div[data-testid="stAlert-success"] {
+    background-color: #e6f4ea;
+    color: #1e7e34;
+}
+
+/* Warning */
+div[data-testid="stAlert-warning"] {
+    background-color: #fff4e5;
+    color: #b26a00;
+}
+
+/* Error */
+div[data-testid="stAlert-error"] {
+    background-color: #fdecea;
+    color: #b02a37;
+}
+
 </style>
 """, unsafe_allow_html=True)
+
+
 
 def check_password():
 
@@ -117,8 +142,6 @@ st.title("Vehicle-Distance-Report")
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
 SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
-
-
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 VEHICLE_FILE_PATH = "vehicles/current_vehicles.xlsx"
@@ -136,15 +159,12 @@ def normalize_plate(x):
         .replace("-", "")
     )
 
-
 def fetch_all_gps():
-
     all_rows = []
     limit = 1000
     start = 0
 
     while True:
-
         response = (
             supabase.table("gps_distance")
             .select("*")
@@ -153,7 +173,6 @@ def fetch_all_gps():
         )
 
         data = response.data
-
         if not data:
             break
 
@@ -161,10 +180,9 @@ def fetch_all_gps():
         start += limit
 
     return pd.DataFrame(all_rows)
-    
+
 @st.cache_data
 def load_vehicle_master():
-
     try:
         vehicle_bytes = supabase.storage \
             .from_("app-data") \
@@ -181,12 +199,10 @@ def load_vehicle_master():
         vehicles["plate_number"] = vehicles["plate_number"].apply(normalize_plate)
 
         return vehicles
-
     except:
         return None
 
 def load_dashboard_data():
-
     vehicles = load_vehicle_master()
     master = fetch_all_gps()
 
@@ -205,13 +221,13 @@ def load_dashboard_data():
 
     return df        
 
+# =============================
+# DASHBOARD TAB
+# =============================
 with tab1:
 
     st.header("Fleet GPS Dashboard")
 
-    # =====================================
-    # CONFIGURABLE RULES
-    # =====================================
     DAILY_DISTANCE_THRESHOLD = 5
     WEEKLY_ACTIVE_DAYS = 4
     MONTHLY_ACTIVE_DAYS = 15
@@ -222,9 +238,6 @@ with tab1:
         st.warning("Upload vehicle master & GPS data first.")
         st.stop()
 
-    # =====================================
-    # FILTER ELIGIBLE VEHICLES
-    # =====================================
     df = df[
         (df["GPS"] == "Yes") &
         (df["Client/QRT"] != "US Embassy")
@@ -232,147 +245,114 @@ with tab1:
 
     latest_date = df["trip_date"].max()
 
-    # =====================================
-    # PERIOD TABS
-    # =====================================
-    dtab, wtab= st.tabs(["Daily", "Weekly"])
+    dtab, wtab = st.tabs(["Daily", "Weekly"])
 
-    # =====================================
-    # STATUS PANEL FUNCTION
-    # =====================================
     def show_dashboard(merged, prefix):
-    
-        # ---------------- OVERALL KPI (UNFILTERED) ----------------
+
         total = merged["plate_number"].nunique()
         active_total = merged[merged["status"] == "Active"]["plate_number"].nunique()
         inactive_total = merged[merged["status"] == "Inactive"]["plate_number"].nunique()
         nodata_total = merged[merged["status"] == "No Data"]["plate_number"].nunique()
-    
+
         k1, k2, k3, k4 = st.columns(4)
         k1.metric("Eligible", total)
         k2.metric("Active", active_total)
         k3.metric("Inactive", inactive_total)
         k4.metric("No Data", nodata_total)
-    
+
         st.divider()
-    
-        # ---------------- FILTER SECTION ----------------
+
         with st.container(border=True):
-    
+
             st.markdown("### Filters")
-    
+
             f1, f2, f3, f4 = st.columns(4)
-    
+
             with f1:
                 hub_filter = st.selectbox(
                     "Hub",
                     ["All"] + sorted(merged["Hub Name"].dropna().unique().tolist()),
                     key=f"{prefix}_hub"
                 )
-    
+
             with f2:
                 location_filter = st.selectbox(
                     "Location",
                     ["All"] + sorted(merged["Location"].dropna().unique().tolist()),
                     key=f"{prefix}_location"
                 )
-    
+
             with f3:
                 client_filter = st.selectbox(
                     "Client",
                     ["All"] + sorted(merged["Client/QRT"].dropna().unique().tolist()),
                     key=f"{prefix}_client"
                 )
-    
+
             with f4:
                 vendor_filter = st.selectbox(
                     "Vendor",
                     ["All"] + sorted(merged["Vendor Name"].dropna().unique().tolist()),
                     key=f"{prefix}_vendor"
                 )
-    
-        # ---------------- APPLY FILTERS ----------------
+
         filtered = merged.copy()
-    
+
         if hub_filter != "All":
             filtered = filtered[filtered["Hub Name"] == hub_filter]
-    
+
         if vendor_filter != "All":
             filtered = filtered[filtered["Vendor Name"] == vendor_filter]
-    
+
         if client_filter != "All":
             filtered = filtered[filtered["Client/QRT"] == client_filter]
-    
+
         if location_filter != "All":
             filtered = filtered[filtered["Location"] == location_filter]
-        
-        # ---------------- STATUS PANELS (FILTERED) ----------------
+
         active = filtered[filtered["status"] == "Active"]
         inactive = filtered[filtered["status"] == "Inactive"]
         nodata = filtered[filtered["status"] == "No Data"]
-    
+
         c1, c2, c3 = st.columns(3)
-    
-        # -------- ACTIVE --------
+
         with c1:
             with st.container(border=True):
                 st.metric("## Active", active["plate_number"].nunique())
-    
                 st.dataframe(
-                    active[
-                        ["Hub Name", "Location",
-                         "Vendor Name", "Client/QRT", "plate_number"]
-                    ],
+                    active[["Hub Name", "Location", "Vendor Name", "Client/QRT", "plate_number"]],
                     width="stretch",
                     height=300
                 )
-    
-        # -------- INACTIVE --------
+
         with c2:
             with st.container(border=True):
                 st.metric("## Inactive", inactive["plate_number"].nunique())
-    
                 st.dataframe(
-                    inactive[
-                        ["Hub Name", "Location",
-                         "Vendor Name", "Client/QRT", "plate_number"]
-                    ],
+                    inactive[["Hub Name", "Location", "Vendor Name", "Client/QRT", "plate_number"]],
                     width="stretch",
                     height=300
                 )
-    
-        # -------- NO DATA --------
+
         with c3:
             with st.container(border=True):
                 st.metric("## No Data", nodata["plate_number"].nunique())
-    
                 st.dataframe(
-                    nodata[
-                        ["Hub Name", "Location",
-                         "Vendor Name", "Client/QRT", "plate_number"]
-                    ],
+                    nodata[["Hub Name", "Location", "Vendor Name", "Client/QRT", "plate_number"]],
                     width="stretch",
                     height=300
                 )
 
-    # =====================================
-    # DAILY
-    # =====================================
     with dtab:
-
         daily = df[df["trip_date"] == latest_date].copy()
 
         gps_master = df[
-            ["plate_number","Hub Name","Location",
-             "Vendor Name","Client/QRT"]
+            ["plate_number","Hub Name","Location","Vendor Name","Client/QRT"]
         ].drop_duplicates()
 
         received = daily.copy()
         received["status"] = "Inactive"
-        received.loc[
-            received["distance"] >= DAILY_DISTANCE_THRESHOLD,
-            "status"
-        ] = "Active"
+        received.loc[received["distance"] >= DAILY_DISTANCE_THRESHOLD, "status"] = "Active"
 
         merged = gps_master.merge(
             received[["plate_number","status"]],
@@ -381,23 +361,15 @@ with tab1:
         )
 
         merged["status"] = merged["status"].fillna("No Data")
-
         show_dashboard(merged, "daily")
 
-    # =====================================
-    # WEEKLY
-    # =====================================
     with wtab:
-
         week_start = latest_date - pd.Timedelta(days=6)
 
-        weekly = df[
-            df["trip_date"].between(week_start, latest_date)
-        ].copy()
+        weekly = df[df["trip_date"].between(week_start, latest_date)].copy()
 
         gps_master = df[
-            ["plate_number","Hub Name","Location",
-             "Vendor Name","Client/QRT"]
+            ["plate_number","Hub Name","Location","Vendor Name","Client/QRT"]
         ].drop_duplicates()
 
         weekly["active_flag"] = weekly["distance"] >= DAILY_DISTANCE_THRESHOLD
@@ -409,10 +381,7 @@ with tab1:
         )
 
         active_days["status"] = "Inactive"
-        active_days.loc[
-            active_days["active_flag"] >= WEEKLY_ACTIVE_DAYS,
-            "status"
-        ] = "Active"
+        active_days.loc[active_days["active_flag"] >= WEEKLY_ACTIVE_DAYS, "status"] = "Active"
 
         merged = gps_master.merge(
             active_days[["plate_number","status"]],
@@ -421,14 +390,8 @@ with tab1:
         )
 
         merged["status"] = merged["status"].fillna("No Data")
-
         show_dashboard(merged, "weekly")
 
-
-
-    # =====================================
-    # FOOTER
-    # =====================================
     st.divider()
     st.caption(
         f"""
@@ -439,6 +402,9 @@ with tab1:
         • Monthly Active: ≥ {MONTHLY_ACTIVE_DAYS} days  
         """
     )
+
+# (Tab2, Tab3, Tab4 remain EXACTLY as you provided — unchanged)
+
 with tab2:
     st.write("Fetch Report")
 
