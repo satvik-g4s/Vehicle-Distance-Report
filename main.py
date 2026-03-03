@@ -162,7 +162,6 @@ with tab1:
         c3.metric("Inactive", inactive)
         c4.metric("No Data Received", nodata)
 
-        st.divider()
 
     # =====================================
     # DETAILED STATUS TABLES
@@ -174,7 +173,7 @@ with tab1:
         c1, c2, c3 = st.columns(3)
 
         with c1:
-            st.markdown("### 🟢 Active")
+            st.markdown("###  Active")
             st.dataframe(
                 df[df["status"] == "Active"]
                 [group_cols + ["plate_number"]],
@@ -183,7 +182,7 @@ with tab1:
             )
 
         with c2:
-            st.markdown("### 🟠 Inactive")
+            st.markdown("###  Inactive")
             st.dataframe(
                 df[df["status"] == "Inactive"]
                 [group_cols + ["plate_number"]],
@@ -192,7 +191,7 @@ with tab1:
             )
 
         with c3:
-            st.markdown("### 🔴 No Data")
+            st.markdown("###  No Data")
             st.dataframe(
                 df[df["status"] == "No Data"]
                 [group_cols + ["plate_number"]],
@@ -349,19 +348,19 @@ with tab1:
         show_status_tables(
             merged,
             ["Hub Name","Location"],
-            "📍 Vehicles by Hub & Location"
+            " Vehicles by Hub & Location"
         )
 
         show_status_tables(
             merged,
             ["Vendor Name"],
-            "🏢 Vehicles by Vendor"
+            " Vehicles by Vendor"
         )
 
         show_status_tables(
             merged,
             ["Client/QRT"],
-            "👤 Vehicles by Client/QRT"
+            " Vehicles by Client/QRT"
         )
 
     # ---------- WEEKLY ----------
@@ -397,19 +396,19 @@ with tab1:
         show_status_tables(
             merged,
             ["Hub Name","Location"],
-            "📍 Vehicles by Hub & Location (Weekly)"
+            " Vehicles by Hub & Location (Weekly)"
         )
 
         show_status_tables(
             merged,
             ["Vendor Name"],
-            "🏢 Vehicles by Vendor (Weekly)"
+            " Vehicles by Vendor (Weekly)"
         )
 
         show_status_tables(
             merged,
             ["Client/QRT"],
-            "👤 Vehicles by Client/QRT (Weekly)"
+            " Vehicles by Client/QRT (Weekly)"
         )
 
     # ---------- MONTHLY ----------
@@ -445,19 +444,19 @@ with tab1:
         show_status_tables(
             merged,
             ["Hub Name","Location"],
-            "📍 Vehicles by Hub & Location (Monthly)"
+            " Vehicles by Hub & Location (Monthly)"
         )
 
         show_status_tables(
             merged,
             ["Vendor Name"],
-            "🏢 Vehicles by Vendor (Monthly)"
+            " Vehicles by Vendor (Monthly)"
         )
 
         show_status_tables(
             merged,
             ["Client/QRT"],
-            "👤 Vehicles by Client/QRT (Monthly)"
+            " Vehicles by Client/QRT (Monthly)"
         )
 
     # =====================================
