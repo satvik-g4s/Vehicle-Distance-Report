@@ -324,7 +324,6 @@ with tab1:
                          "Vendor Name", "Client/QRT", "plate_number"]
                     ].reset_index(drop=True),
                     width="stretch",
-                    hide_index=True,
                     height=280
                 )
     
@@ -339,7 +338,6 @@ with tab1:
                          "Vendor Name", "Client/QRT", "plate_number"]
                     ].reset_index(drop=True),
                     width="stretch",
-                    hide_index=True,
                     height=280
                 )
     
@@ -354,7 +352,6 @@ with tab1:
                          "Vendor Name", "Client/QRT", "plate_number"]
                     ].reset_index(drop=True),
                     width="stretch",
-                    hide_index=True,
                     height=280
                 )
 
