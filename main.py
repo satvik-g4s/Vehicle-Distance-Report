@@ -322,7 +322,7 @@ with tab1:
                     active[
                         ["Hub Name", "Location",
                          "Vendor Name", "Client/QRT", "plate_number"]
-                    ],
+                    ].reset_index(drop=True),
                     width="stretch",
                     height=280
                 )
@@ -336,7 +336,7 @@ with tab1:
                     inactive[
                         ["Hub Name", "Location",
                          "Vendor Name", "Client/QRT", "plate_number"]
-                    ],
+                    ].reset_index(drop=True),
                     width="stretch",
                     height=280
                 )
@@ -350,7 +350,7 @@ with tab1:
                     nodata[
                         ["Hub Name", "Location",
                          "Vendor Name", "Client/QRT", "plate_number"]
-                    ],
+                    ].reset_index(drop=True),
                     width="stretch",
                     height=280
                 )
