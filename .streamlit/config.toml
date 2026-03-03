@@ -1,9 +1,3 @@
 [theme]
 # Inherit from the default light theme
 base="light" 
-# Set a dark text color for better contrast
-textColor="#31333f" 
-# Set a slightly different background color for the table header to make it stand out
-secondaryBackgroundColor="#f0f2f6" 
-# Ensure borders are visible
-dataframeBorderColor="#c0c0c0"
