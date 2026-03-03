@@ -238,7 +238,7 @@ with tab1:
         # -------- ACTIVE --------
         with c1:
             with st.container(border=True):
-                st.markdown("##Active")
+                st.markdown("## Active")
                 st.metric("Count", active)
 
                 st.dataframe(
