@@ -231,9 +231,7 @@ with tab1:
     
         if location_filter != "All":
             filtered = filtered[filtered["Location"] == location_filter]
-    
-        st.divider()
-    
+        
         # ---------------- STATUS PANELS (FILTERED) ----------------
         active = filtered[filtered["status"] == "Active"]
         inactive = filtered[filtered["status"] == "Inactive"]
@@ -252,7 +250,7 @@ with tab1:
                          "Vendor Name", "Client/QRT", "plate_number"]
                     ],
                     width="stretch",
-                    height=350
+                    height=300
                 )
     
         # -------- INACTIVE --------
@@ -266,7 +264,7 @@ with tab1:
                          "Vendor Name", "Client/QRT", "plate_number"]
                     ],
                     width="stretch",
-                    height=350
+                    height=300
                 )
     
         # -------- NO DATA --------
@@ -280,7 +278,7 @@ with tab1:
                          "Vendor Name", "Client/QRT", "plate_number"]
                     ],
                     width="stretch",
-                    height=350
+                    height=300
                 )
 
     # =====================================
