@@ -6,4 +6,4 @@ textColor="#31333f"
 # Set a slightly different background color for the table header to make it stand out
 secondaryBackgroundColor="#f0f2f6" 
 # Ensure borders are visible
-dataframeBorderColor="#302f2f"
+dataframeBorderColor="#575b78"
