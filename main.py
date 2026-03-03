@@ -329,8 +329,8 @@ with tab1:
     # =====================================
     # PERIOD TABS
     # =====================================
-    dtab, wtab, mtab = st.tabs(
-        ["Daily","Weekly","Monthly"]
+    dtab, wtab= st.tabs(
+        ["Daily","Weekly"]
     )
 
     # ---------- DAILY ----------
