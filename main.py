@@ -1,12 +1,86 @@
-
 import streamlit as st
 import pandas as pd
 from supabase import create_client
 from io import BytesIO
 import io
+
 st.set_page_config(layout="wide")
 
-
+# =====================================
+# ADD COLOR STYLING (UI enhancement only)
+# =====================================
+st.markdown("""
+<style>
+    /* Main app background */
+    .stApp {
+        background-color: #f8f9fa;
+    }
+    /* Headers */
+    h1, h2, h3, h4, h5, h6 {
+        color: #2c3e50;
+    }
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 2px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        background-color: #e9ecef;
+        border-radius: 4px 4px 0 0;
+        padding: 10px 20px;
+        color: #495057;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: #1f77b4;
+        color: white;
+    }
+    /* Buttons */
+    .stButton button {
+        background-color: #1f77b4;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+    }
+    .stButton button:hover {
+        background-color: #135a8f;
+        color: white;
+        border: none;
+    }
+    /* Metrics */
+    [data-testid="stMetricValue"] {
+        color: #1f77b4;
+        font-weight: 600;
+    }
+    [data-testid="stMetricLabel"] {
+        color: #6c757d;
+    }
+    /* Dataframes */
+    .stDataFrame thead tr th {
+        background-color: #1f77b4;
+        color: white;
+        font-weight: 500;
+    }
+    .stDataFrame tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    /* Containers with border */
+    .stContainer [data-testid="stContainer"] {
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        padding: 1rem;
+        background-color: white;
+    }
+    /* Dividers */
+    hr {
+        border-color: #dee2e6;
+    }
+    /* Alert boxes */
+    .stAlert {
+        border-radius: 4px;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 def check_password():
 
