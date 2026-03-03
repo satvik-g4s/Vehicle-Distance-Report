@@ -423,53 +423,6 @@ with tab1:
             " Vehicles by Client/QRT (Weekly)"
         )
 
-    # ---------- MONTHLY ----------
-    with mtab:
-
-        month_start = latest_date.replace(day=1)
-
-        monthly = df[
-            df["trip_date"].between(
-                month_start,latest_date
-            )
-        ]
-
-        hub,vendor,client,merged = analyse_period(
-            monthly,df,MONTHLY_ACTIVE_DAYS
-        )
-
-        show_kpis(merged)
-
-        col1, col2, col3 = st.columns(3)
-
-        col1.subheader("Hub - Location")
-        col1.dataframe(hub,width="stretch")
-
-        col2.subheader("Vendor")
-        col2.dataframe(vendor,width="stretch")
-
-        col3.subheader("Client/QRT")
-        col3.dataframe(client,width="stretch")
-
-        st.divider()
-
-        show_status_tables(
-            merged,
-            ["Hub Name","Location"],
-            " Vehicles by Hub & Location (Monthly)"
-        )
-
-        show_status_tables(
-            merged,
-            ["Vendor Name"],
-            " Vehicles by Vendor (Monthly)"
-        )
-
-        show_status_tables(
-            merged,
-            ["Client/QRT"],
-            " Vehicles by Client/QRT (Monthly)"
-        )
 
     # =====================================
     # FOOTER
@@ -481,7 +434,6 @@ with tab1:
     
     • A car is considered **Active (Daily)** if distance travelled is more than {DAILY_DISTANCE_THRESHOLD} Km per day.  
     • A car is considered **Active (Weekly)** if it was active for {WEEKLY_ACTIVE_DAYS} or more days in the last 7 days.  
-    • A car is considered **Active (Monthly)** if it was active for {MONTHLY_ACTIVE_DAYS} or more days in the current month.
     """
     )
 with tab2:
