@@ -6,25 +6,7 @@ from io import BytesIO
 import io
 st.set_page_config(layout="wide")
 
-st.markdown("""
-<style>
 
-/* Light blue filter container */
-.filter-box {
-    background-color: #e6f2ff;
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px solid #cce0ff;
-    margin-bottom: 20px;
-}
-
-/* Keep selectboxes clean white */
-div[data-baseweb="select"] > div {
-    background-color: white !important;
-}
-
-</style>
-""", unsafe_allow_html=True)
 
 def check_password():
 
@@ -188,7 +170,6 @@ with tab1:
 
         # ---------------- FILTER SECTION ----------------
         with st.container(border=True):
-            st.markdown('<div class="filter-box">', unsafe_allow_html=True)
 
             st.markdown("### Filters")
             
@@ -222,7 +203,6 @@ with tab1:
                     key=f"{prefix}_location"
                 )
 
-            st.markdown('</div>', unsafe_allow_html=True)
         # ---------------- APPLY FILTERS ----------------
         filtered = merged.copy()
 
