@@ -228,14 +228,14 @@ with tab1:
         (df["Client/QRT"] != "US Embassy")
     ].copy()
 
-    latest_date = df["trip_date"].max()
+    df["trip_date"] = pd.to_datetime(df["trip_date"])
+    latest_date = df["trip_date"].dropna().max()
 
     # =====================================
     # DASHBOARD FUNCTION
     # =====================================
     def show_dashboard(merged, prefix, extra_col=None):
 
-        # -------- KPI --------
         total = merged["plate_number"].nunique()
         active_total = merged[merged["status"] == "Active"]["plate_number"].nunique()
         inactive_total = merged[merged["status"] == "Inactive"]["plate_number"].nunique()
@@ -305,9 +305,11 @@ with tab1:
         inactive = filtered[filtered["status"] == "Inactive"]
         nodata = filtered[filtered["status"] == "No Data"]
 
-        cols_to_show = ["Hub Name", "Location",
-                        "Vendor Name", "Client/QRT",
-                        "plate_number"]
+        cols_to_show = [
+            "Hub Name", "Location",
+            "Vendor Name", "Client/QRT",
+            "plate_number"
+        ]
 
         if extra_col:
             cols_to_show.append(extra_col)
@@ -319,7 +321,7 @@ with tab1:
                 st.metric("Active", active["plate_number"].nunique())
                 st.dataframe(
                     active[cols_to_show],
-                    width="stretch",
+                    use_container_width=True,
                     height=280,
                     hide_index=True
                 )
@@ -329,7 +331,7 @@ with tab1:
                 st.metric("Inactive", inactive["plate_number"].nunique())
                 st.dataframe(
                     inactive[cols_to_show],
-                    width="stretch",
+                    use_container_width=True,
                     height=280,
                     hide_index=True
                 )
@@ -339,7 +341,7 @@ with tab1:
                 st.metric("No Data", nodata["plate_number"].nunique())
                 st.dataframe(
                     nodata[cols_to_show],
-                    width="stretch",
+                    use_container_width=True,
                     height=280,
                     hide_index=True
                 )
@@ -349,10 +351,22 @@ with tab1:
     # =====================================
     dtab, wtab, mtab = st.tabs(["Daily", "Weekly", "Monthly"])
 
-    # -------- DAILY --------
+    # =====================================
+    # DAILY
+    # =====================================
     with dtab:
 
-        daily = df[df["trip_date"] == latest_date].copy()
+        selected_date = st.date_input(
+            "Select Date",
+            value=latest_date.date(),
+            min_value=df["trip_date"].min().date(),
+            max_value=latest_date.date(),
+            key="daily_date"
+        )
+
+        st.subheader(f"Daily Status — {pd.Timestamp(selected_date).strftime('%d %b %Y')}")
+
+        daily = df[df["trip_date"] == pd.Timestamp(selected_date)].copy()
 
         gps_master = df[
             ["plate_number","Hub Name","Location",
@@ -379,15 +393,36 @@ with tab1:
 
         show_dashboard(merged, "daily", extra_col="KM")
 
-    # -------- WEEKLY (Mon–Sun) --------
+    # =====================================
+    # WEEKLY
+    # =====================================
     with wtab:
 
-        week_start = latest_date - pd.Timedelta(days=latest_date.weekday())
-        week_end = week_start + pd.Timedelta(days=6)
+        df["week_start"] = df["trip_date"] - pd.to_timedelta(df["trip_date"].dt.weekday, unit="d")
+        df["week_end"] = df["week_start"] + pd.Timedelta(days=6)
 
-        weekly = df[
-            df["trip_date"].between(week_start, week_end)
-        ].copy()
+        weeks = (
+            df[["week_start","week_end"]]
+            .drop_duplicates()
+            .sort_values("week_start")
+        )
+
+        weeks["label"] = weeks["week_start"].dt.strftime("%d %b") + " - " + weeks["week_end"].dt.strftime("%d %b")
+
+        selected_week = st.selectbox(
+            "Select Week",
+            weeks["label"],
+            index=len(weeks)-1,
+            key="weekly_select"
+        )
+
+        week_row = weeks[weeks["label"] == selected_week].iloc[0]
+        week_start = week_row["week_start"]
+        week_end = week_row["week_end"]
+
+        st.subheader(f"Weekly Status — {selected_week}")
+
+        weekly = df[df["trip_date"].between(week_start, week_end)].copy()
 
         gps_master = df[
             ["plate_number","Hub Name","Location",
@@ -421,14 +456,30 @@ with tab1:
 
         show_dashboard(merged, "weekly", extra_col="Active Days")
 
-    # -------- MONTHLY (From 1st) --------
+    # =====================================
+    # MONTHLY
+    # =====================================
     with mtab:
 
-        month_start = latest_date.replace(day=1)
+        df["month"] = df["trip_date"].dt.to_period("M")
 
-        monthly = df[
-            df["trip_date"].between(month_start, latest_date)
-        ].copy()
+        months = sorted(df["month"].unique())
+
+        selected_month = st.selectbox(
+            "Select Month",
+            [m.strftime("%b %Y") for m in months],
+            index=len(months)-1,
+            key="month_select"
+        )
+
+        month_period = pd.Period(selected_month)
+
+        month_start = month_period.start_time
+        month_end = month_period.end_time
+
+        st.subheader(f"Monthly Status — {selected_month}")
+
+        monthly = df[df["trip_date"].between(month_start, month_end)].copy()
 
         gps_master = df[
             ["plate_number","Hub Name","Location",
@@ -462,14 +513,15 @@ with tab1:
 
         show_dashboard(merged, "monthly", extra_col="Active Days")
 
-    # -------- FOOTER --------
+    # =====================================
+    # FOOTER
+    # =====================================
     st.divider()
     st.caption(f"• Data till {latest_date.strftime('%d-%b-%Y')}")
     st.caption(f"• Daily Active ≥ {DAILY_DISTANCE_THRESHOLD} Km")
-    st.caption(f"• Weekly Active ≥ {WEEKLY_ACTIVE_DAYS} days (Mon–Sun)")
-    st.caption(f"• Monthly Active ≥ {MONTHLY_ACTIVE_DAYS} days (from 1st)")
+    st.caption(f"• Weekly Active ≥ {WEEKLY_ACTIVE_DAYS} days")
+    st.caption(f"• Monthly Active ≥ {MONTHLY_ACTIVE_DAYS} days")
     st.caption("• US Embassy excluded")
-
 
 with tab2:
     st.write("Fetch Report")
