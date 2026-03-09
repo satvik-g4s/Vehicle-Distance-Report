@@ -217,8 +217,12 @@ with tab1:
     vehicles = load_vehicle_master()
     master = fetch_all_gps()
 
-    if vehicles is None or master.empty:
-        st.warning("Upload vehicle master & GPS data first.")
+    if vehicles is None:
+        st.warning("Vehicle master not uploaded.")
+        st.stop()
+
+    if master.empty:
+        st.warning("GPS database empty.")
         st.stop()
 
     master["trip_date"] = pd.to_datetime(master["trip_date"], errors="coerce")
@@ -226,6 +230,16 @@ with tab1:
 
     vehicles["plate_number"] = vehicles["plate_number"].apply(normalize_plate)
 
+    # ---------------- FILTER VEHICLES ----------------
+
+    vehicles["GPS"] = vehicles["GPS"].astype(str).str.strip().str.upper()
+
+    vehicles = vehicles[
+        (vehicles["GPS"] == "YES") &
+        (~vehicles["Client/QRT"].astype(str).str.contains("US Embassy", case=False, na=False))
+    ].copy()
+
+    # merge vehicle master + gps
     df = pd.merge(
         vehicles,
         master,
@@ -233,21 +247,18 @@ with tab1:
         how="left"
     )
 
-    df = df[
-        (df["GPS"] == "Yes") &
-        (df["Client/QRT"] != "US Embassy")
-    ].copy()
-
-    latest_date = df["trip_date"].dropna().max()
+    latest_date = master["trip_date"].dropna().max()
 
     if pd.isna(latest_date):
-        st.warning("No valid GPS dates available.")
+        st.warning("No valid trip dates found.")
         st.stop()
 
     # ---------------- DASHBOARD FUNCTION ----------------
+
     def show_dashboard(merged, prefix, extra_col=None):
 
-        total = merged["plate_number"].nunique()
+        total = vehicles["plate_number"].nunique()
+
         active_total = merged[merged["status"] == "Active"]["plate_number"].nunique()
         inactive_total = merged[merged["status"] == "Inactive"]["plate_number"].nunique()
         nodata_total = merged[merged["status"] == "No Data"]["plate_number"].nunique()
@@ -358,7 +369,7 @@ with tab1:
                     hide_index=True
                 )
 
-    # ---------------- TABS ----------------
+    # ---------------- PERIOD TABS ----------------
 
     dtab, wtab, mtab = st.tabs(["Daily", "Weekly", "Monthly"])
 
@@ -369,22 +380,18 @@ with tab1:
         selected_date = st.date_input(
             "Select Date",
             value=latest_date.date(),
-            min_value=df["trip_date"].min().date(),
-            max_value=latest_date.date(),
             key="daily_date"
         )
 
         selected_date = pd.Timestamp(selected_date)
 
-        st.subheader(
-            f"Daily Status — {selected_date.strftime('%d %b %Y')}"
-        )
-
-        daily = df[df["trip_date"] == selected_date].copy()
+        st.subheader(f"Daily Status — {selected_date.strftime('%d %b %Y')}")
 
         gps_master = vehicles[
             ["plate_number","Hub Name","Location","Vendor Name","Client/QRT"]
         ]
+
+        daily = df[df["trip_date"] == selected_date].copy()
 
         daily["status"] = "Inactive"
         daily.loc[
@@ -422,10 +429,6 @@ with tab1:
             .drop_duplicates()
             .sort_values("week_start")
         )
-
-        if weeks.empty:
-            st.warning("No weekly data available")
-            st.stop()
 
         weeks["label"] = (
             weeks["week_start"].dt.strftime("%d %b %Y")
@@ -492,10 +495,6 @@ with tab1:
 
         months = sorted(df["month"].dropna().unique())
 
-        if not months:
-            st.warning("No monthly data available")
-            st.stop()
-
         month_labels = [m.strftime("%b %Y") for m in months]
 
         selected_month = st.selectbox(
@@ -557,8 +556,7 @@ with tab1:
     st.caption(f"Daily Active ≥ {DAILY_DISTANCE_THRESHOLD} Km")
     st.caption(f"Weekly Active ≥ {WEEKLY_ACTIVE_DAYS} days")
     st.caption(f"Monthly Active ≥ {MONTHLY_ACTIVE_DAYS} days")
-    st.caption("US Embassy excluded")
-    
+    st.caption("US Embassy excluded")    
 with tab2:
     st.write("Fetch Report")
 
