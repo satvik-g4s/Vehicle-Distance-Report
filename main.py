@@ -7,6 +7,11 @@ import io
 
 st.set_page_config(layout="wide")
 
+st.set_page_config(
+    page_title="Vehicle Tracker",
+    page_icon="favicon-16x16.png"
+)
+
 # =====================================
 # ADD COLOR STYLING (UI enhancement only)
 # =====================================
