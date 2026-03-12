@@ -810,24 +810,7 @@ with tab4:
     • **Weekly Active:** A vehicle is considered *Active* if it was active for **4 or more days in the current week**.  
     
     • **Monthly Active:** A vehicle is considered *Active* if it was active for **20 or more days in the current month**.  
-    
-    
-    #### Data Upload Instructions
-    
-    • **Cautio Data:** Upload in **CSV format only**.  
-    • **MapMyIndia Data:** Upload in **Excel (.xlsx) format only**.  
-    
-    ⚠ Please upload the files in their **respective upload sections** and **do not change the format or interchange the files**.
-    
-    
-    #### Vehicle Master File
-    
-    The **Vehicle Master** file contains the complete list of vehicles and related details.  
-    Upload a new Vehicle Master **only if the vehicle details have changed**.
-    
-    The column order must be exactly as follows:
-    
-    S.No, Lease/Rental, Type, Hub Name, Location, Client/QRT, plate_number, Vehicle Contract Status, Make, Vendor Name, Lease Start, Contrat End/Extension, Expiring Year, Lease Tenure, Lease Mileage, Billing Company, Monthly EMI, ADAS, GPS
+
 
     
     #### Weekly & Monthly Calculation Notes
@@ -840,9 +823,30 @@ with tab4:
     • Vehicles may appear **Inactive during the first 3 days of a new week**.  
     • Vehicles may appear **Inactive during the first 19 days of a new month**.
     
+
     
     #### Data Accuracy Note
     
     Some discrepancies may occur if the **plate numbers received in GPS data do not exactly match the plate numbers in the Vehicle Master**.  
     Ensure that plate numbers in uploaded files match the master data to maintain accurate reporting.
+
+
+
+    #### Data Upload Instructions
+    
+    • **Cautio Data:** Upload in **CSV format only**.  
+    • **MapMyIndia Data:** Upload in **Excel (.xlsx) format only**.  
+    ⚠ Please upload the files in their **respective upload sections** and **do not change the format or interchange the files**.
+
+        
+    The **Vehicle Master** file contains the complete list of vehicles and related details.  
+    Upload a new Vehicle Master **only if the vehicle details have changed**.
+    
+    The column order must be exactly as follows:
+    S.No, Lease/Rental, Type, Hub Name, Location, Client/QRT, plate_number, Vehicle Contract Status, Make, Vendor Name, Lease Start, Contrat End/Extension, Expiring Year, Lease Tenure, Lease Mileage, Billing Company, Monthly EMI, ADAS, GPS
+
+    
     """)
+
+
+    
