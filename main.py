@@ -2,6 +2,7 @@
 import streamlit as st
 import pandas as pd
 from supabase import create_client
+import time
 from io import BytesIO
 import io
 
@@ -756,6 +757,7 @@ with tab3:
                 ).execute()
 
             st.success("Database Updated ✅")
+            time.sleep(2.5)
             st.rerun()
     st.subheader("Vehicle Master Upload")
 
@@ -798,8 +800,49 @@ with tab3:
     
             st.success("Vehicle Master Updated Successfully ✅")
             st.rerun()
-with tab4:            
+with tab4:
     st.markdown("""
-    ### Yet to be Added
+    ### Dashboard Guidelines
+    
+    #### Vehicle Activity Rules
+    • **Daily Active:** A vehicle is considered *Active* if it has travelled **more than 5 KM in a day**.  
+    
+    • **Weekly Active:** A vehicle is considered *Active* if it was active for **4 or more days in the current week**.  
+    
+    • **Monthly Active:** A vehicle is considered *Active* if it was active for **20 or more days in the current month**.  
+    
+    
+    #### Data Upload Instructions
+    
+    • **Cautio Data:** Upload in **CSV format only**.  
+    • **MapMyIndia Data:** Upload in **Excel (.xlsx) format only**.  
+    
+    ⚠ Please upload the files in their **respective upload sections** and **do not change the format or interchange the files**.
+    
+    
+    #### Vehicle Master File
+    
+    The **Vehicle Master** file contains the complete list of vehicles and related details.  
+    Upload a new Vehicle Master **only if the vehicle details have changed**.
+    
+    The column order must be exactly as follows:
+    
+    S.No, Lease/Rental, Type, Hub Name, Location, Client/QRT, plate_number, Vehicle Contract Status, Make, Vendor Name, Lease Start, Contrat End/Extension, Expiring Year, Lease Tenure, Lease Mileage, Billing Company, Monthly EMI, ADAS, GPS
 
+    
+    #### Weekly & Monthly Calculation Notes
+    
+    • **Weekly calculations start from Monday** (first day of the week).  
+    • **Monthly calculations start from the 1st day of the month**.  
+    
+    Because of this:
+    
+    • Vehicles may appear **Inactive during the first 3 days of a new week**.  
+    • Vehicles may appear **Inactive during the first 19 days of a new month**.
+    
+    
+    #### Data Accuracy Note
+    
+    Some discrepancies may occur if the **plate numbers received in GPS data do not exactly match the plate numbers in the Vehicle Master**.  
+    Ensure that plate numbers in uploaded files match the master data to maintain accurate reporting.
     """)
