@@ -7,7 +7,8 @@ This application generates vehicle distance MIS reports and dashboards for G4S v
 The application is built using Streamlit and is deployed as a web application.
 
 Platform
-Streamlit – Python framework used to build lightweight data applications and dashboards accessible through a web browser.
+Streamlit – Opensource Python framework used to build lightweight data applications and dashboards accessible through a web browser.
+Supabase - Postgres development platform, used for database.
 
 Current Deployment
 The application is currently deployed on Streamlit Cloud.
